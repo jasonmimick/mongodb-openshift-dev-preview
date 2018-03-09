@@ -1,0 +1,24 @@
+
+- debug:
+    msg: "mms_agent_apikey={{ mms_agent_apikey }}"
+
+- name: get automation agent config
+  uri: 
+    url: "{{ mms_api_uri }}/groups/{{ mms_group_id }}/automationConfig"
+    method: GET
+    user: "{{ mms_user }}"
+    password: "{{ mms_user_apikey }}"
+    status_code: 200,404
+    timeout: 20
+    return_content: yes
+    body_format: json
+  register: automation_config
+
+- debug:
+    msg: "automation_config={{ automation_config.status }}"
+  when: automation_config.status == 200
+
+- debug:
+    msg: "failed to get automation config {{ automation_config }}"
+  when: automation_config.status == 404
+

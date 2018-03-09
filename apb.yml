@@ -1,0 +1,101 @@
+_p: &_p
+  - name: mms_base_url
+    title: Ops Manager URL
+    type: string
+    required: True
+    #default: 'http://cloud.mongodb.com'
+    default: 'http://localhost:8080'
+    #default: http://JasonsMacBook55local.local:8888
+    #default: http://192.168.0.14:8888
+    display_group: MongoDB Ops Manager Connection
+  - name: mms_user
+    title: Ops Manager user
+    type: string
+    required: True
+    default: jason.mimick@mongodb.com
+    display_group: MongoDB Ops Manager Connection
+  - name: mms_user_apikey
+    title: User's Ops Manager API key
+    type: string
+    required: True
+    default: 0f4a72ee-d5c6-4729-aff0-81fbcb931f75
+    display_type: string
+    display_group: MongoDB Ops Manager Connection
+#  - name: mms_agent_apikey
+#    title: Ops Manager Auotmation Agent API key
+#    type: string
+#    required: True
+#    default: 5a344be2a1e87d095b8be8247022656032a93b2c6e8f45fff1d771ca
+#    display_type: string
+#    display_group: MongoDB Ops Manager Connection
+  - name: cluster_name
+    title: MongoDB Cluster Name
+    type: string
+    default: 
+    required: True
+  - name: nodes_per_replicaset
+    title: Number of nodes in Replica Set
+    type: string 
+    default: "3"
+    required: True
+  - name: mongodb_version
+    title: MongoDB Version
+    type: enum
+    default: '3.4.13'
+    enum: [ '3.4.13', '3.6.3' ]
+    required: True
+  - name: mongodb_port 
+    title: Port for MongoDB to listen on
+    type: string
+    default: "27000"
+    required: True
+  - name: mms_api_uri
+    title: MongoDB Ops Manager API URI
+    default: 'http://localhost:8080/api/public/v1.0'
+    #default: 'http://JasonsMacBook55local.local:8888/api/public/v1.0'
+    #default: 'http://192.168.0.14:8888/api/public/v1.0'
+    type: string
+  - name: mms_project_name
+    title: Project to create replica set in
+    default: ""
+    type: string
+  - name: mms_default_orgId
+    title: Organization for new project
+    default: "5a9362d66cef470c375a9855"
+    type: string
+  - name: mms_api_timeout
+    title: MongoDB Ops Manager API Timeout in seconds
+    default: "30"
+    type: string
+  - name: disk_size_gb
+    title: Size in Gb for persistent storage claim on data node
+    default: "5"
+    type: string
+
+
+
+version: 1.1
+name: mongodb-enterprise
+description: Deploy MongoDB into Openshift through Ops Manager
+bindable: True
+async: optional
+metadata:
+  displayName: MongoDB Enterprise
+  dependencies: [ 'centos' ]
+plans:
+  - name: replicaset
+    description: This plan deploys a MongoDB replica set
+    free: True
+    metadata: 
+     displayName: MongoDB Replica Set
+     longDescription: This plan deploys a MongoDB replica
+     cost: $0.00
+    parameters: *_p
+  - name: standalone 
+    description: This plan deploys a Stand-alone MongoDB
+    free: True
+    metadata: 
+     displayName: MongoDB Stand Alone Instance
+     longDescription: This plan deploys a single MongoDB node
+     cost: $0.00
+    parameters: *_p

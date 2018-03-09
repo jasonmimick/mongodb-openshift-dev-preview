@@ -1,0 +1,78 @@
+
+- name: get group by name
+  uri: 
+    url: "{{ mms_api_uri }}/groups/byName/{{ mms_project_name }}"
+    method: GET
+    user: "{{ mms_user }}"
+    password: "{{ mms_user_apikey }}"
+    status_code: 200,404
+    timeout: 20
+    return_content: yes
+    body_format: json
+  register: mms_group
+
+- debug: 
+    msg: "mms_group.json={{ mms_group.json }}"
+
+- name: register mms org project-group ids
+  set_fact:
+    mms_group_id: "{{ mms_group.json.id }}"
+    mms_orgId: "{{ mms_group.json.orgId }}"
+    mms_agent_apikey: "{{ mms_group.json.agentApiKey }}"
+  when: 
+    - mms_group.status == 200
+
+- debug: 
+    msg: "mms_group_id={{ mms_group_id }}"
+  when: mms_group.status == 200
+#
+- debug: 
+    msg: "mms_orgId={{ mms_orgId }}"
+  when: mms_group.status == 200
+
+- debug: 
+    msg: "mms_agent_apikey={{ mms_agent_apikey }}"
+  when: mms_group.status == 200
+
+- name: create group
+  uri:
+    url: "{{ mms_api_uri }}/groups"
+    method: POST
+    user: "{{ mms_user }}"
+    password: "{{ mms_user_apikey }}"
+    status_code: 201
+    timeout: "{{ mms_api_timeout }}"
+    return_content: yes
+    body: '{ "name" : "{{ mms_project_name }}",
+             "orgId" : "{{ mms_default_orgId }}" }'
+    body_format: json
+  when:
+    - mms_group.status == 404
+  register: mms_new_group
+
+- name: register mms org project-group ids
+  set_fact:
+    mms_group_id: "{{ mms_new_group.json.id }}"
+    mms_orgId: "{{ mms_new_group.json.orgId }}"
+    mms_agent_apikey: "{{ mms_new_group.json.agentApiKey }}"
+  when: 
+    - mms_new_group.status == 201
+
+- debug:
+    msg: "mms_new_group={{ mms_new_group }}"
+  when: mms_new_group.status == 201
+
+- debug: 
+    msg: "mms_group_id={{ mms_group_id }}"
+  when: mms_new_group.status == 201
+#
+- debug: 
+    msg: "mms_orgId={{ mms_orgId }}"
+  when: mms_new_group.status == 201
+
+- debug: 
+    msg: "mms_agent_apikey={{ mms_agent_apikey }}"
+  when: mms_new_group.status == 201
+
+
+

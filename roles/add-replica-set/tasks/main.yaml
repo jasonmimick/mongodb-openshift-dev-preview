@@ -1,0 +1,32 @@
+- debug:
+    msg: "cluster_name={{ cluster_name }}"
+
+- name: update auto config for replica set
+  add_replica_set:
+    cluster_name: "{{ cluster_name }}"  
+    automation_config: "{{ automation_config.json }}"
+    replica_set_nodes: "{{ nodes_per_replicaset }}"
+    mongodb_version: "{{ mongodb_version }}"
+  register: add_replica_set_response
+
+- debug:
+    msg: "add_replica_set_response={{ add_replica_set_response }}"
+
+- debug:
+    msg: "wrote auto-config.json"
+
+- name : put auto config
+  uri: 
+    url: "{{ mms_api_uri }}/groups/{{ mms_group_id }}/automationConfig"
+    method: PUT
+    user: "{{ mms_user }}"
+    password: "{{ mms_user_apikey }}"
+    status_code: 200,404
+    timeout: 20
+    return_content: yes
+    body : "{{ add_replica_set_response.meta.auto_config }}"
+    body_format: json
+  register: put_automation_config
+
+- debug:
+    msg: "put_automation_config={{ put_automation_config }}"
