@@ -1,4 +1,4 @@
-_p: &_p
+_opsMgrInfo: &_opsMgrInfo
   - name: mms_base_url
     title: Ops Manager URL
     type: string
@@ -7,53 +7,23 @@ _p: &_p
     default: 'http://localhost:8080'
     #default: http://JasonsMacBook55local.local:8888
     #default: http://192.168.0.14:8888
-    display_group: MongoDB Ops Manager Connection
+    display_group: MongoDB Ops Manager Configuration
   - name: mms_user
     title: Ops Manager user
     type: string
     required: True
     default: jason.mimick@mongodb.com
-    display_group: MongoDB Ops Manager Connection
+    display_group: MongoDB Ops Manager Configuration
   - name: mms_user_apikey
     title: User's Ops Manager API key
     type: string
     required: True
     default: 0f4a72ee-d5c6-4729-aff0-81fbcb931f75
     display_type: string
-    display_group: MongoDB Ops Manager Connection
-#  - name: mms_agent_apikey
-#    title: Ops Manager Auotmation Agent API key
-#    type: string
-#    required: True
-#    default: 5a344be2a1e87d095b8be8247022656032a93b2c6e8f45fff1d771ca
-#    display_type: string
-#    display_group: MongoDB Ops Manager Connection
-  - name: cluster_name
-    title: MongoDB Cluster Name
-    type: string
-    default: 
-    required: True
-  - name: nodes_per_replicaset
-    title: Number of nodes in Replica Set
-    type: string 
-    default: "3"
-    required: True
-  - name: mongodb_version
-    title: MongoDB Version
-    type: enum
-    default: '3.4.13'
-    enum: [ '3.4.13', '3.6.3' ]
-    required: True
-  - name: mongodb_port 
-    title: Port for MongoDB to listen on
-    type: string
-    default: "27000"
-    required: True
+    display_group: MongoDB Ops Manager Configuration
   - name: mms_api_uri
     title: MongoDB Ops Manager API URI
     default: 'http://localhost:8080/api/public/v1.0'
-    #default: 'http://JasonsMacBook55local.local:8888/api/public/v1.0'
-    #default: 'http://192.168.0.14:8888/api/public/v1.0'
     type: string
   - name: mms_project_name
     title: Project to create replica set in
@@ -67,14 +37,60 @@ _p: &_p
     title: MongoDB Ops Manager API Timeout in seconds
     default: "30"
     type: string
+
+_clusterInfo: &_clusterInfo
+  - name: cluster_name
+    title: MongoDB Cluster Name
+    type: string
+    default: 
+    required: True
+  - name: mongodb_version
+    title: MongoDB Version
+    type: enum
+    default: '3.4.13'
+    enum: [ '3.4.13', '3.6.3' ]
+    required: True
+  - name: mongodb_port 
+    title: Port for MongoDB to listen on
+    type: string
+    default: "27000"
+    required: True
   - name: disk_size_gb
     title: Size in Gb for persistent storage claim on data node
     default: "5"
     type: string
 
+_replSetInfo:
+  - name: nodes_per_replicaset
+    title: Number of nodes in Replica Set
+    type: string 
+    default: "3"
+    required: True
+
+_agentsOnlyInfo:
+   - name: number_of_agents_only_pods
+     title: Number of agents-only pods
+     type: string
+     default: "13"
+     required: True
+
+_standalone: &_standalone
+  <<: *_opsMgrInfo
+  <<: *_clusterInfo
+
+_replicaset: &_replicaset
+  <<: *_opsMgrInfo
+  <<: *_clusterInfo
+  <<: *_replSetInfo
+
+_agentsonly:> &_agentsonly
+  <<: *_opsMgrInfo
+  <<: *_clusterInfo
+  <<: *_agentsOnlyInfo
 
 
-version: 1.1
+
+version: 0.1
 name: mongodb-enterprise
 description: Deploy MongoDB into Openshift through Ops Manager
 bindable: True
@@ -82,15 +98,9 @@ async: optional
 metadata:
   displayName: MongoDB Enterprise
   dependencies: [ 'centos' ]
+  imageUrl: https://www.mongodb.com/assets/images/cloud/atlas/illustrations/live-import.png
+  documentationUrl: https://github.com/jasonmimick/mongodb-openshift-dev-preview
 plans:
-  - name: replicaset
-    description: This plan deploys a MongoDB replica set
-    free: True
-    metadata: 
-     displayName: MongoDB Replica Set
-     longDescription: This plan deploys a MongoDB replica
-     cost: $0.00
-    parameters: *_p
   - name: standalone 
     description: This plan deploys a Stand-alone MongoDB
     free: True
@@ -98,4 +108,21 @@ plans:
      displayName: MongoDB Stand Alone Instance
      longDescription: This plan deploys a single MongoDB node
      cost: $0.00
-    parameters: *_p
+    parameters: *_standalone
+  - name: replicaset
+    description: This plan deploys a MongoDB replica set
+    free: True
+    metadata: 
+     displayName: MongoDB Replica Set
+     longDescription: This plan deploys a MongoDB replica
+     cost: $0.00
+    parameters: *_replicaset
+  - name: agent-only
+    description: Deploys n-pods with only the agents
+    free: True
+    metadata:
+      MongoDB Agents-Only
+      longDescription: This plan deploys some number of pods each with only 1 of each type of MongoDB Ops Manager agent. No actual MongoDB instances are provisioned. Each agent is associated with the desired project. This base pos allows users to configure more advanced clusters directly through MongoDB Ops Manager.
+      cost: $1,000,000US
+    parameters: *_agentsonly
+
