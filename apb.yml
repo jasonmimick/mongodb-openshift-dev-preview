@@ -1,12 +1,9 @@
-_opsMgrInfo: &_opsMgrInfo
+opsMgrInfo: &opsMgrInfo
   - name: mms_base_url
     title: Ops Manager URL
     type: string
     required: True
-    #default: 'http://cloud.mongodb.com'
     default: 'http://localhost:8080'
-    #default: http://JasonsMacBook55local.local:8888
-    #default: http://192.168.0.14:8888
     display_group: MongoDB Ops Manager Configuration
   - name: mms_user
     title: Ops Manager user
@@ -38,7 +35,7 @@ _opsMgrInfo: &_opsMgrInfo
     default: "30"
     type: string
 
-_clusterInfo: &_clusterInfo
+clusterInfo: &clusterInfo
   - name: cluster_name
     title: MongoDB Cluster Name
     type: string
@@ -60,29 +57,29 @@ _clusterInfo: &_clusterInfo
     default: "5"
     type: string
 
-_replSetInfo: &_replSetInfo
+replSetInfo: &replSetInfo
   - name: nodes_per_replicaset
     title: Number of nodes in Replica Set
     type: string 
     default: "3"
     required: True
 
-_agentsOnlyInfo: &_agentsOnlyInfo
-   - name: number_of_agents_only_pods
-     title: Number of agents-only pods
-     type: string
-     default: "13"
-     required: True
+agentsOnlyInfo: &agentsOnlyInfo
+  - name: number_of_agents_only_pods
+    title: Number of agents-only pods
+    type: string
+    default: "13"
+    required: True
 
-_replicaset: &_replicaset
-  <<: *_opsMgrInfo
-  <<: *_clusterInfo
-  <<: *_replSetInfo
+replicaset: &replicaset
+  <<: *opsMgrInfo
+  <<: *clusterInfo
+  <<: *replSetInfo
 
-_agentsonly: &_agentsonly
-  <<: *_opsMgrInfo
-  <<: *_clusterInfo
-  <<: *_agentsOnlyInfo
+agentsonly: &agentsonly
+  <<: *opsMgrInfo
+  <<: *clusterInfo
+  <<: *agentsOnlyInfo
 
 
 version: 0.1
@@ -103,7 +100,7 @@ plans:
      displayName: MongoDB Replica Set
      longDescription: This plan deploys a MongoDB replica
      cost: $0.00
-    parameters: *_replicaset
+    parameters: *replicaset
   - name: agent-only
     description: Deploys n-pods with only the agents
     free: True
@@ -111,5 +108,5 @@ plans:
       description: MongoDB Agents-Only
       longDescription: This plan deploys some number of pods each with only 1 of each type of MongoDB Ops Manager agent. No actual MongoDB instances are provisioned. Each agent is associated with the desired project. This base pos allows users to configure more advanced clusters directly through MongoDB Ops Manager.
       cost: $1,000,000US
-    parameters: *_agentsonly
+    parameters: *agentsonly
 
