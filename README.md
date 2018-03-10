@@ -1,6 +1,11 @@
 mongodb-openshift-dev-preview
 =============================
 
+```diff
++ STATUS: Work In Progress...
+- STATUS: Did not exist
+```
+
 This is the MongoDB Enterprise Openshift "Developer Preview"!
 The contents of this repository demonstrate functional integration
 between the Red Hat Openshift PaaS and MongoDB Enterprise.
