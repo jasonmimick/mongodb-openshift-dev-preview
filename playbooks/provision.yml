@@ -14,6 +14,12 @@
     playbook_debug: true
   - role: add-replica-set
     playbook_debug: true
+    when: nodes_per_replicaset is defined
+  - role: add-agent-only-pods
+    playbook_debug: true
+    when: number_of_agents_only_pods is defined
+ 
+
 
 
 

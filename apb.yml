@@ -74,19 +74,18 @@ _agentsOnlyInfo:
      default: "13"
      required: True
 
-_standalone: &_standalone
-  <<: *_opsMgrInfo
-  <<: *_clusterInfo
-
 _replicaset: &_replicaset
   <<: *_opsMgrInfo
   <<: *_clusterInfo
   <<: *_replSetInfo
+  - name: apb_plan
+    default: "replSet"
 
 _agentsonly:> &_agentsonly
   <<: *_opsMgrInfo
   <<: *_clusterInfo
   <<: *_agentsOnlyInfo
+  
 
 
 
@@ -101,14 +100,6 @@ metadata:
   imageUrl: https://www.mongodb.com/assets/images/cloud/atlas/illustrations/live-import.png
   documentationUrl: https://github.com/jasonmimick/mongodb-openshift-dev-preview
 plans:
-  - name: standalone 
-    description: This plan deploys a Stand-alone MongoDB
-    free: True
-    metadata: 
-     displayName: MongoDB Stand Alone Instance
-     longDescription: This plan deploys a single MongoDB node
-     cost: $0.00
-    parameters: *_standalone
   - name: replicaset
     description: This plan deploys a MongoDB replica set
     free: True

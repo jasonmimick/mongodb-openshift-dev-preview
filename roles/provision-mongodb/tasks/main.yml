@@ -7,7 +7,7 @@
 ##############################################################################
 - name: Create secrets for MongoDB Automation Agents
   k8s_v1_secret:
-    name: "k8s-mongodb-opsmanager-{{ cluster_name }}"
+    name: "mongodb-{{ cluster_name }}"
     namespace: '{{ namespace }}'
     type: Opaque
     state: present
@@ -27,7 +27,6 @@
       role: "mongodb-server-{{ cluster_name }}"
     spec_ports:
       - port: "{{ mongodb_port | int }}"
-        #targetPort: "{{ mongodb_port | int }}"
     spec_cluster_ip: None
 
 - name: Create StatefulSet
@@ -47,20 +46,20 @@
           - name: MMS_BASE_URL_INTERNAL
             valueFrom: 
               secretKeyRef:
-                name: "k8s-mongodb-opsmanager-{{ cluster_name }}"
+                name: "mongodb-{{ cluster_name }}"
                 key: base-url
           - name: MMS_AGENT_APIKEY
             valueFrom: 
               secretKeyRef:
-                name: "k8s-mongodb-opsmanager-{{ cluster_name }}"
+                name: "mongodb-{{ cluster_name }}"
                 key: agent-apikey
           - name: MMS_GROUP_ID
             valueFrom: 
               secretKeyRef:
-                name: "k8s-mongodb-opsmanager-{{ cluster_name }}"
+                name: "mongodb-{{ cluster_name }}"
                 key: group-id
           - name: MMS_BOOTSTRAP_URL
-            value: "https://raw.githubusercontent.com/jasonmimick/k8s-mongodb-opsmanager/master/install-automation-agent.sh"
+            value: "https://raw.githubusercontent.com/jasonmimick/mongodb-openshift-dev-preview/master/install-automation-agent.sh"
         command: [ '/bin/sh', '-c' ]
         args: [ "cd /tmp && curl -OL $(MMS_BOOTSTRAP_URL) && chmod +x install-automation-agent.sh && ./install-automation-agent.sh" ]
         ports:
@@ -76,3 +75,4 @@
           resources:
             requests:
               storage: "{{ disk_size_gb }}Gi"
+

@@ -1,7 +1,6 @@
 # This role does all the MongoDB Ops Mgr API calls
-# which deal with creating actual db clusters.
-# Each task is conditionalized on the 
-# apb_plan parameter.
+# which deal with creating actual db clusters
+# for the agentsOnly plan.
 
 - debug:
     msg: "cluster_name={{ cluster_name }}"
@@ -9,14 +8,13 @@
 
 - debug:
     msg: "ops-mgr-api role, executing agents-only plan"
+  when: apb_plan = "agentsOnly"
 
-# replSet plan
 - name: update auto config for replica set
-  add_replica_set:
+  add_agents_only_pods:
     cluster_name: "{{ cluster_name }}"  
     automation_config: "{{ automation_config.json }}"
-    replica_set_nodes: "{{ nodes_per_replicaset }}"
-    mongodb_version: "{{ mongodb_version }}"
+    number_of_agents_only_pods: "{{ number_of_agents_only_pods }}"
   register: add_replica_set_response
 
 - debug:

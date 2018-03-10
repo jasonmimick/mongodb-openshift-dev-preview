@@ -28,7 +28,7 @@ Introduction <a id="intro"></a>
 ------------
 
 This repository contains artifacts which allow you to provision
-MongoDB replica sets and standalone instances into OpenShift. It
+MongoDB replica sets and agents-only instances into OpenShift. It
 leverages
 [MongoDB Ops Manager](https://www.mongodb.com/products/ops-manager)
 for automation, monitoring, alerting, and backup functionality.
