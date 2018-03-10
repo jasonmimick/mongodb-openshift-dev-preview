@@ -7,10 +7,12 @@ mongodb-openshift-dev-preview
 ```
 
 This is the MongoDB Enterprise Openshift "Developer Preview"!
+
 The contents of this repository demonstrate functional integration
 between the Red Hat Openshift PaaS and MongoDB Enterprise.
 You can now spin up MongoDB Enterprise replica sets within
-your own OpenShift environment.
+your own OpenShift environment with the click of
+a button.
 
 **DISCLAIMER**: This repository is for demonstration purposes only.
 No assumptions should be made between this particular implementation
@@ -23,6 +25,9 @@ through GitHub.
 
 * [Getting Started](#gs)
 
+* [Dependencies](#depends)
+
+* [Development Environment Tips](#devenvtips)
 * [Known Issues & Limitations](#issues)
 
 <!--* [Technical Details](#td) -->
@@ -33,7 +38,7 @@ Introduction <a id="intro"></a>
 ------------
 
 This repository contains artifacts which allow you to provision
-MongoDB replica sets and agents-only instances into OpenShift. It
+MongoDB replica sets and agents-only pods into OpenShift. It
 leverages
 [MongoDB Ops Manager](https://www.mongodb.com/products/ops-manager)
 for automation, monitoring, alerting, and backup functionality.
@@ -69,26 +74,105 @@ Getting Started <a id="gs"></a>
 A greate place to find info on building your development
 environment is in the [APB Getting Started](https://github.com/ansibleplaybookbundle/ansible-playbook-bundle/blob/master/docs/getting_started.md).
 
+Please see the [Dependencies](#depends) section for
+details on specific versions of software used.
+
+Consult the [Development Environement](#devenvtips)
+section for tips on setting up your own
+development environment.
 3. Clone this repo
 
 ```
 $git clone https://github.com/jasonmimick/mongodb-openshift-dev-preview
 ```
 
-### Installing the APB
+### Installing & Running the APB
 
-apb push
-apb push --push-to-broker
+We typically used these commands to test
+the mongodb-enterprise apb. For some reason,
+we needed to run the `apb push` command multiple
+times in order for it to appear in the
+OpenShift web-console.
 
-cli
+```
+apb build && apb push && apb push --push-to-broker
+apb run --project default --action provision
+```
 
-run-apb.sh helper
+The `apb run` command is an interactive command
+in which you will be prompted to enter the
+various configuration parameters.
 
-ui
+#### Troubleshooting
 
-### Provisioning MongoDB
+* You can check the apb loaded correctly by running,
+`apb list`. Make sure it appears. Also to validate
+the service has been picked up by the lower
+level ServiceCatalog, run
+
+```
+ oc get clusterserviceclasses -o=custom-columns=SERVICE\ NAME:.metadata.name,EXTERNAL\ NAME:.spec.externalName,TS:.metadata.creationTimestamp | grep mongo
+ ```
+
+ (The above produces a decently human readable output.) Be sure to check the timestamp. By default
+ the ansible-service-broker only updates the
+ ServiceCatalog every 15 mins. You can change
+ this behavior, consult the `relistDuration`
+ attribute.
+
+To check:
+ ```
+ oc get clusterservicebrokers ansible-service-broker -o yaml
+ ```
+
+ To edit:
+ ```
+ oc edit clusterservicebroker ansible-service-broker
+ ```
+
+Dependencies<a id="depends"></a>
+--------------------------------
+
+* OpenShift 3.7+ with
+`--service-catalog=true`
+  * `oc` cli
+* MongoDB Ops Manager 3.6+
+* [apb](https://github.com/ansibleplaybookbundle/ansible-playbook-bundle) cli
+* Docker Version 17.09.0-ce-mac35 (19611)
+    * Some issue with very latest version for Mac
+
+
+Development Environment Tips<a id="devenvtips"></a>
+---------------------------------------------------
+
+
+*Note:* All development was done on MacOS
+
+Here's a sample script to bootstrap your
+local OpenShift environment:
+
+```
+#!/bin/bash
+
+oc --loglevel 3 cluster up --service-catalog=true
+# run_latest_build.sh comes from the APB repo
+./run_latest_build.sh
+oc login --insecure-skip-tls-verify -u admin -p admin
+
+oc login -u system:admin
+oc adm policy add-scc-to-user anyuid -z default
+oc adm policy add-scc-to-group anyuid system:authenticated
+oc adm policy add-cluster-role-to-user cluster-admin developer
+oc adm policy add-cluster-role-to-user cluster-admin admin
+
+oc login -u developer -p developer
+OPENSHIFT_TOKEN=$(oc whoami -t)
+docker login -u developer -p ${OPENSHIFT_TOKEN} 172.30.1.1:5000
+```
+
 
 Known Issues & Limitations<a id="issues"></a>
+---------------------------------------------
 
 List of issues, Limitations, and to-dos. These should become "issues"
 as needed.

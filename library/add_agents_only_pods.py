@@ -30,7 +30,7 @@ def project_present(data):
   backupVersions = []
   monitoringVersions = []
   for i in range(0,number_nodes):
-    hostname = 'mongodb-server-%s-%s.%s.%s' % (project_name, i,s,d)
+    hostname = 'mongodb-%s-%s.%s' % (project_name, i,d)
     backupVersion = { "hostname": hostname }
 
     #     "logPath": "/var/vcap/sys/log/mongod_node/backup-agent.log",$
