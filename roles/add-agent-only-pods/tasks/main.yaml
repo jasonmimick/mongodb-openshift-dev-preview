@@ -13,7 +13,7 @@
   add_agents_only_pods:
     cluster_name: "{{ cluster_name }}"  
     automation_config: "{{ automation_config.json }}"
-    number_of_agents_only_pods: "{{ number_of_agents_only_pods }}"
+    number_of_agents_only_pods: "{{ number_pods_aa }}"
   register: add_replica_set_response
 
 - debug:

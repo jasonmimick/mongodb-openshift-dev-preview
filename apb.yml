@@ -3,7 +3,7 @@ agentsonly: &agentsonly
     title: Ops Manager URL
     type: string
     required: True
-    default: 'http://localhost:8080'
+    default: 'http://jasonsmacbook55.lan:8080'
     display_group: MongoDB Ops Manager Configuration
   - name: mms_user
     title: Ops Manager user
@@ -20,7 +20,7 @@ agentsonly: &agentsonly
     display_group: MongoDB Ops Manager Configuration
   - name: mms_api_uri
     title: MongoDB Ops Manager API URI
-    default: 'http://localhost:8080/api/public/v1.0'
+    default: 'http://jasonsmacbook55.lan:8080/api/public/v1.0'
     type: string
   - name: mms_project_name
     title: Project to create replica set in
@@ -58,7 +58,7 @@ agentsonly: &agentsonly
     default: "5"
     type: string
     display_group: MongoDB Cluster Configuration
-  - name: number_of_agents_only_pods
+  - name: number_pods_aa
     title: Number of agents-only pods
     type: string
     default: "13"
@@ -70,7 +70,7 @@ replicaset: &replicaset
     title: Ops Manager URL
     type: string
     required: True
-    default: 'http://localhost:8080'
+    default: 'http://jasonsmacbook55.lan:8080'
     display_group: MongoDB Ops Manager Configuration
   - name: mms_user
     title: Ops Manager user
@@ -87,7 +87,7 @@ replicaset: &replicaset
     display_group: MongoDB Ops Manager Configuration
   - name: mms_api_uri
     title: MongoDB Ops Manager API URI
-    default: 'http://localhost:8080/api/public/v1.0'
+    default: 'http://jasonsmacbook55.lan:8080/api/public/v1.0'
     type: string
   - name: mms_project_name
     title: Project to create replica set in
@@ -125,7 +125,7 @@ replicaset: &replicaset
     default: "5"
     type: string
     display_group: MongoDB Cluster Configuration
-  - name: nodes_per_replicaset
+  - name: number_pods_rs
     title: Number of nodes in Replica Set
     type: string 
     default: "3"

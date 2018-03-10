@@ -29,12 +29,20 @@
       - port: "{{ mongodb_port | int }}"
     spec_cluster_ip: None
 
+- name: Set fact for number of replicas
+  set_fact:
+    number_replicas : "{{ number_pods_rs }}"
+    when: number_pods_rs is defined
+  set_fact:
+    number_replicas: "{{ number_pods_aa }}"
+    when: number_pods_aa is defined
+
 - name: Create StatefulSet
   k8s_v1beta1_stateful_set:
     name: "mongodb-server-{{ cluster_name }}"
     namespace: '{{ namespace }}'
     service_name: "mongodb-service-{{ cluster_name }}"
-    replicas: "{{ nodes_per_replicaset }}"
+    replicas: "{{ number_replicas }}"
     spec_template_metadata_labels:
       app: "mongodb-server-{{ cluster_name }}"
       role: "mongodb-server-{{ cluster_name }}"

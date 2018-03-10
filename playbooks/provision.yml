@@ -8,16 +8,16 @@
   - role: ansibleplaybookbundle.asb-modules
   - role: create-group-by-name
     playbook_debug: true
-  - role: provision-mongodb-cluster
+  - role: provision-mongodb
     playbook_debug: true
   - role: get-automation-agent-config
     playbook_debug: true
   - role: add-replica-set
     playbook_debug: true
-    when: nodes_per_replicaset is defined
+    when: number_pods_rs is defined
   - role: add-agent-only-pods
     playbook_debug: true
-    when: number_of_agents_only_pods is defined
+    when: number_pods_aa is defined
  
 
 

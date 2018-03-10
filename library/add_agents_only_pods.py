@@ -2,30 +2,8 @@
 
 from ansible.module_utils.basic import *
 
-def get_replica_set_index(replica_set_name,auto_config):
-  doesnt_exist = False
-  replica_set_index=-1
-  
-  len_replicaSets = len(auto_config['replicaSets'])
-  # There are none, so doesn't exist and will
-  # be first
-  if len_replicaSets==0:
-    replica_set_index = 0
-    doesnt_exist = True
-    return replica_set_index, doesnt_exist
 
-  # Try to find by _id == name
-  for idx,replSet in auto_config['replicaSets']:
-    if replSet._id == replica_set_name:
-      replica_set_index = idx
-  
-  # If replica_set_index still -1, doesn't exist
-  if replica_set_index==-1:
-    replica_set_index = len_replicaSets 
-    doesnt_exist = True
-  return replica_set_index, doesnt_exist
-
-def replica_set_present(data):
+def project_present(data):
   
   def get_nvpair(name,default_value):
     value = data.get(name, default_value)
@@ -43,56 +21,16 @@ def replica_set_present(data):
       print "Defaulting to 3 nodes"
       number_of_nodes = 3
   auto_config = data['automation_config']
-  replica_set_name = data['cluster_name']
-  replica_set_index, doesnt_exist = get_replica_set_index(replica_set_name,
-                                            auto_config)
+  project_name = data['cluster_name']
 
-  # If this repl set doesn't doesn't exist,
-  # then we sure don't need to add it.
-  # TODO: What if the number of nodes isn't the same?
-  if not doesnt_exist:
-    return { "auto_config" : auto_config, 
-             "meta" : "replica set %s was already there?" % replica_set_name }
-    
-  
   # TODO: Move these default values into playbook params
-  rs = { "_id" : replica_set_name, "members" : [ ] }
-  auto_config['replicaSets'].append(rs)
-  s = "mongodb-service-%s" % replica_set_name
+  s = "mongodb-service-%s" % project_name
   d = "default.svc.cluster.local"
   processes = []
   backupVersions = []
   monitoringVersions = []
   for i in range(0,number_nodes):
-    hostname = 'mongodb-server-%s-%s.%s.%s' % (replica_set_name, i,s,d)
-    rs_member = {}
-    rs_member.update( {'_id' : i} )
-    rs_member.update( get_nvpair('arbiterOnly',False) )
-    rs_member.update( get_nvpair('hidden',False) )
-    rs_member.update({'host' : hostname})
-    rs_member.update( get_nvpair('priority',1.0) )
-    rs_member.update( get_nvpair('slaveDelay',0) )
-    rs_member.update( get_nvpair('votes',1) )
-    auto_config['replicaSets'][replica_set_index]['members'].append(rs_member)
-    process = {}
-    process['args2_6']= {
-        'net' : { 'port' : 27000 },
-        'replication' : { 'replSetName' : replica_set_name },
-        'storage' : { 'dbPath' : '/data' },
-        'systemLog' : { 'destination' : 'file',
-                        'path' : '/data/mongodb.log' },
-    }
-    process['logRotate'] = { 'sizeThresholdMB': 1000,
-                             'timeThresholdHrs': 24
-    }
-    process['hostname'] = hostname
-    #process['name'] = 'mongodb-server-%s-%s' % (replica_set_name,i)
-    process['name'] = hostname
-    process['processType'] = 'mongod'
-    process['version'] = data['mongodb_version']
-    process['authSchemaVersion'] = 5
-    process['featureCompatibilityVersion'] = data['mongodb_version'][0:3]
-    processes.append( process )
+    hostname = 'mongodb-server-%s-%s.%s.%s' % (project_name, i,s,d)
     backupVersion = { "hostname": hostname }
 
     #     "logPath": "/var/vcap/sys/log/mongod_node/backup-agent.log",$
@@ -102,29 +40,21 @@ def replica_set_present(data):
     monitoringVersion = { "hostname": hostname }
     backupVersions.append( backupVersion )
     monitoringVersions.append( monitoringVersion )
-  auto_config['processes']=processes
   # add agents
   auto_config['backupVersions']=backupVersions
   auto_config['monitoringVersions']=monitoringVersions
  
-  return { "auto_config" : auto_config, "meta" : "Added replica set %s" % replica_set_name }
+  return { "auto_config" : auto_config
+         , "meta" : "Added %s angents-only pods to %s" % (number_nodes, project_name) }
 
 
 # remove cluster_name from automationConfig
-def replica_set_absent(data):
+def project_absent(data):
   auto_config = data['automation_config']
-  replica_set_name = data['cluster_name']
+  project_name = data['cluster_name']
   
-  # i is the length of the 'replicaSets' array in the automation config
-  replica_set_index, doesnt_exist = get_replica_set_index(replica_set_name,
-                                            auto_config)
   
-  msg = ""
-  if not doesnt_exist:
-    del auto_config['replicaSets'][replica_set_index]
-    msg = "Relica set %s removed" % replica_set_name
-  else:
-    msg = "Replica set %s didn't exist" % replica_set_name
+  msg = "ERROR: Not supported yet."
   return { "auto_config" : auto_config, "meta" : msg }
 
 
@@ -142,8 +72,8 @@ def main():
   }
 
   choice_map = { 
-    "present" : replica_set_present,
-    "absent"  : replica_set_absent
+    "present" : project_present,
+    "absent"  : project_absent
   }
 
   module = AnsibleModule(argument_spec=fields)
