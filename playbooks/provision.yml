@@ -2,6 +2,11 @@
   hosts: localhost
   gather_facts: false
   connection: local
+  set_fact:
+    mms_api_uri: "{{ mms_base_url }}/api/public/v1.0"
+    mms-cluster-hostname-prefix: "mongodb"
+    openshift_domain: "default.svc.cluster.local"
+    
   roles:
   - role: ansible.kubernetes-modules
     install_python_requirements: no

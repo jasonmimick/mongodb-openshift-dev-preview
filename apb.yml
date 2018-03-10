@@ -3,7 +3,8 @@ agentsonly: &agentsonly
     title: Ops Manager URL
     type: string
     required: True
-    default: 'http://jasonsmacbook55.lan:8080'
+    #default: 'http://jasonsmacbook55.lan:8080'
+    default: 'jasonsmacbook55local.local'
     display_group: MongoDB Ops Manager Configuration
   - name: mms_user
     title: Ops Manager user
@@ -18,22 +19,21 @@ agentsonly: &agentsonly
     default: 0f4a72ee-d5c6-4729-aff0-81fbcb931f75
     display_type: string
     display_group: MongoDB Ops Manager Configuration
-  - name: mms_api_uri
-    title: MongoDB Ops Manager API URI
-    default: 'http://jasonsmacbook55.lan:8080/api/public/v1.0'
-    type: string
   - name: mms_project_name
     title: Project to create replica set in
     default: ""
     type: string
+    display_group: MongoDB Ops Manager Configuration
   - name: mms_default_orgId
     title: Organization for new project
     default: "5a9362d66cef470c375a9855"
     type: string
+    display_group: MongoDB Ops Manager Configuration
   - name: mms_api_timeout
     title: MongoDB Ops Manager API Timeout in seconds
     default: "30"
     type: string
+    display_group: MongoDB Ops Manager Configuration
   - name: cluster_name
     title: MongoDB Cluster Name
     type: string
@@ -70,7 +70,7 @@ replicaset: &replicaset
     title: Ops Manager URL
     type: string
     required: True
-    default: 'http://jasonsmacbook55.lan:8080'
+    default: 'http://jasonsmacbook55local.local:8080'
     display_group: MongoDB Ops Manager Configuration
   - name: mms_user
     title: Ops Manager user
@@ -85,10 +85,6 @@ replicaset: &replicaset
     default: 0f4a72ee-d5c6-4729-aff0-81fbcb931f75
     display_type: string
     display_group: MongoDB Ops Manager Configuration
-  - name: mms_api_uri
-    title: MongoDB Ops Manager API URI
-    default: 'http://jasonsmacbook55.lan:8080/api/public/v1.0'
-    type: string
   - name: mms_project_name
     title: Project to create replica set in
     default: ""
@@ -97,10 +93,12 @@ replicaset: &replicaset
     title: Organization for new project
     default: "5a9362d66cef470c375a9855"
     type: string
+    display_group: MongoDB Ops Manager Configuration
   - name: mms_api_timeout
     title: MongoDB Ops Manager API Timeout in seconds
     default: "30"
     type: string
+    display_group: MongoDB Ops Manager Configuration
   - name: cluster_name
     title: MongoDB Cluster Name
     type: string

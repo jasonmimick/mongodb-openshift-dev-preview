@@ -2,6 +2,16 @@
 
 from ansible.module_utils.basic import *
 
+def gen_hostname(data,i)
+  prefix = data['mms_cluster_hostname_prefix']
+  project = data['mms_project_name']
+  cluster = data['mms_cluster-name']
+  domain = data['openshift_domain']
+  hostname = "%s-%s-%s-%s.%s" % (prefix,project,cluster,i,domain)
+  hostname = hostname.lower()   # doesn't like caps
+  print "gen_hostname => %s" % hostname
+  return hostname
+
 def get_replica_set_index(replica_set_name,auto_config):
   doesnt_exist = False
   replica_set_index=-1
@@ -58,13 +68,11 @@ def replica_set_present(data):
   # TODO: Move these default values into playbook params
   rs = { "_id" : replica_set_name, "members" : [ ] }
   auto_config['replicaSets'].append(rs)
-  s = "mongodb-service-%s" % replica_set_name
-  d = "default.svc.cluster.local"
   processes = []
   backupVersions = []
   monitoringVersions = []
   for i in range(0,number_nodes):
-    hostname = 'mongodb-server-%s-%s.%s.%s' % (replica_set_name, i,s,d)
+    hostname = gen_hostname(data,i)
     rs_member = {}
     rs_member.update( {'_id' : i} )
     rs_member.update( get_nvpair('arbiterOnly',False) )
