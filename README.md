@@ -6,15 +6,16 @@ mongodb-openshift-dev-preview
 - STATUS: Did not exist
 ```
 
-This is the MongoDB Enterprise Openshift "Developer Preview"!
+This is the MongoDB Enterprise Openshift "Developer Preview".
 
-The contents of this repository demonstrate functional integration
-between the Red Hat Openshift PaaS and MongoDB Enterprise.
+The contents of this repository demonstrate a functional integration
+between the Red Hat OpenShift PaaS and MongoDB Enterprise.
 You can now spin up MongoDB Enterprise replica sets within
 your own OpenShift environment with the click of
 a button.
 
-<span style='color:red'>**DISCLAIMER**:</span> This repository is for demonstration purposes only.
+<span style='color:red'>**WARNING!**</span> This repository is
+for demonstration purposes only.
 No assumptions should be made between this particular implementation
 and future supported products from MongoDB, Inc. Do not use this in
 anything close to a production environment. All support, as it is, takes
@@ -28,24 +29,26 @@ through GitHub.
 * [Dependencies](#depends)
 
 * [Development Environment Tips](#devenvtips)
-* [Known Issues & Limitations](#issues)
 
-<!--* [Technical Details](#td) -->
+* [Known Issues & Limitations](#issues)
 
 * [Contacts](#contact)
 
-Introduction <a id="intro"></a>
-------------
+* [Disclaimer](#disclaim)
 
-This repository contains artifacts which allow you to provision
-MongoDB replica sets and agents-only pods into OpenShift. It
-leverages
+Introduction <a id="intro"></a>
+-------------------------------
+
+The artifacts within allow one to provision
+MongoDB replica sets and agents-only pods into
+OpenShift. It leverages
 [MongoDB Ops Manager](https://www.mongodb.com/products/ops-manager)
 for automation, monitoring, alerting, and backup functionality.
-The basic design uses OpenShift to provision pods (with 1
-container each running an instance of an automation agent)
-and then invokes REST API calls to MongoDB Ops Manager which,
-in turn, installs MongoDB instances into each pod.
+The basic design uses OpenShift to provision pods, each with 1
+container running an instance of an automation agent.
+Then REST API calls to MongoDB Ops Manager are invoked which,
+in turn, install MongoDB instances into each pod and configures
+the desired cluster.
 
 Being a "developer preview" these artifacts can be treated as a
 "functional prototype". Here we mean, this demonstrates
@@ -57,12 +60,13 @@ OpenShift specific, we use the new(er)
 [Ansible Service Broker](https://github.com/openshift/ansible-service-broker)
 available in OpenShift v3.7+. This broker registered services
 to a central Service Catalog. The services are packaged as
-Ansible Playbook Bundles](https://github.com/ansibleplaybookbundle).
- These artifacts constitute the majority
+[Ansible Playbook Bundles](https://github.com/ansibleplaybookbundle).
+ This handiwork constitutes the majority
 of the files in this repository.
 
-<span style='color:red'>**_NOTE!_**</span> Being a new, 'prototype' project there are a number of detailed
-steps required in order to use this functionality. Please be sure to
+<span style='color:red'>**_NOTE!_**</span> Being a new,
+'prototype' project there are a number of detailed
+steps required in order to use these components. Please be sure to
 read this entire README _before_ attempting to get started.
 Patience, young jedi, we call 'em README's for a reason.
 
@@ -71,20 +75,22 @@ Getting Started <a id="gs"></a>
 
 ### Prerequisites
 
-1. A working MongoDB Ops Manager installation. See
+* A working MongoDB Ops Manager installation. Run through the
+[install a simple test deployment](https://docs.opsmanager.mongodb.com/current/tutorial/install-simple-test-deployment/) instructions, and then see
 [Ops Manager setup](#om-setup) for additional configuration steps.
 
-2. A working OpenShift environment, with the Ansible Service Broker.
+* A working OpenShift environment, with the Ansible Service Broker.
 A greate place to find info on building your development
 environment is in the [APB Getting Started](https://github.com/ansibleplaybookbundle/ansible-playbook-bundle/blob/master/docs/getting_started.md).
 
-Please see the [Dependencies](#depends) section for
+* Please see the [Dependencies](#depends) section for
 details on specific versions of software used.
 
-Consult the [Development Environement](#devenvtips)
+* Consult the [Development Environement](#devenvtips)
 section for tips on setting up your own
 development environment.
-3. Clone this repo
+
+* Finally, clone this repo
 
 ```
 $git clone https://github.com/jasonmimick/mongodb-openshift-dev-preview
@@ -150,7 +156,7 @@ Development Environment Tips<a id="devenvtips"></a>
 ---------------------------------------------------
 
 
-*Note:* All development was done on MacOS
+*Note:* All development was done on macOS Sierra 10.12.6
 
 Here's a sample script to bootstrap your
 local OpenShift environment:
@@ -179,7 +185,7 @@ docker login -u developer -p ${OPENSHIFT_TOKEN} 172.30.1.1:5000
 * Enable
 [Public API access](https://docs.opsmanager.mongodb.com/current/tutorial/configure-public-api-access/)
 for your account
-  * Create an API key
+  * Create an API key & save to use to in configuration while provisioning
   * Add appropriate ips or `0.0.0.0/0` to the IP Whitelist
 
 Known Issues & Limitations<a id="issues"></a>
@@ -193,17 +199,19 @@ as needed.
   * Database authentication is not enabled
 * Sharded cluster deployments are yet supported (but possible by
 manually deploying *agent-only* nodes).
-* Deprovision not functional yet. Manually clean things, e.g.
+* Deprovision not functional yet. To manually clean things, things
+like this work <span color='red'>WARNING!</span> this will
+scrub all mongo stuff.
 
 
 ```
-oc get dc | grep mongodb-server | cut -f1 -d' ' |\
+oc get dc | grep mongodb- | cut -f1 -d' ' |\
  xargs oc delete dc --force=true
-oc get pvc | grep mongo-cluster | cut -f1 -d' ' |\
+oc get pvc | grep mongo- | cut -f1 -d' ' |\
  xargs oc delete pvc --force=true
-oc get statefulset | grep mongodb-server | cut -f1 -d' ' |\
+oc get statefulset | grep mongodb- | cut -f1 -d' ' |\
  xargs oc delete statefulset --force=true
-oc get svc | grep mongodb-service-cluster | cut -f1 -d' ' |\
+oc get svc | grep mongodb- | cut -f1 -d' ' |\
  xargs oc delete svc --force=true
 oc get pods | grep apb-run-provision-mongodb | cut -f1 -d' ' |\
  xargs oc delete pod --force=true
@@ -238,18 +246,27 @@ Docker image or somehow.
 * TODO: Build sample app, e.g. simple web-app which reads/writes
 data to bound mongodb cluster.
 
+* Root cause why need to run `apb push` twice.
+
+* Possibly store Ops Mgr credentials and urls as secrets, do not
+require for each provision, but do allow overrides while
+provisioning.
+
 
 Contacts <a id="contact"></a>
---------
+-----------------------------
 
 For technical questions, issues, sales and marketting support,
 or just comments please email
 [jason.mimick@mongodb.com](mailto://jason.mimick@mongodb.com) and
 [dana.groce@mongodb.com](mailto://dana.groce@mongodb.com).
 
----------
+
+Disclaimer<a id="disclaim"></a>
+-------------------------------
+
 This software is not supported by [MongoDB, Inc.](http://mongodb.com)
 under any of their commercial support subscriptions or otherwise.
 Any usage of the mongodb-openshift-dev-preview is at your own risk.
-Bug reports, feature requests and questions can be posted in the 
+Bug reports, feature requests and questions can be posted in the
 [Issues](/issues?state=open) section on GitHub.
