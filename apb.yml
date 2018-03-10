@@ -60,14 +60,14 @@ _clusterInfo: &_clusterInfo
     default: "5"
     type: string
 
-_replSetInfo:
+_replSetInfo: &_replSetInfo
   - name: nodes_per_replicaset
     title: Number of nodes in Replica Set
     type: string 
     default: "3"
     required: True
 
-_agentsOnlyInfo:
+_agentsOnlyInfo: &_agentsOnlyInfo
    - name: number_of_agents_only_pods
      title: Number of agents-only pods
      type: string
@@ -78,15 +78,11 @@ _replicaset: &_replicaset
   <<: *_opsMgrInfo
   <<: *_clusterInfo
   <<: *_replSetInfo
-  - name: apb_plan
-    default: "replSet"
 
-_agentsonly:> &_agentsonly
+_agentsonly: &_agentsonly
   <<: *_opsMgrInfo
   <<: *_clusterInfo
   <<: *_agentsOnlyInfo
-  
-
 
 
 version: 0.1
@@ -112,7 +108,7 @@ plans:
     description: Deploys n-pods with only the agents
     free: True
     metadata:
-      MongoDB Agents-Only
+      description: MongoDB Agents-Only
       longDescription: This plan deploys some number of pods each with only 1 of each type of MongoDB Ops Manager agent. No actual MongoDB instances are provisioned. Each agent is associated with the desired project. This base pos allows users to configure more advanced clusters directly through MongoDB Ops Manager.
       cost: $1,000,000US
     parameters: *_agentsonly

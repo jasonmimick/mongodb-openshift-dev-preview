@@ -8,7 +8,6 @@
 
 - debug:
     msg: "ops-mgr-api role, executing agents-only plan"
-  when: apb_plan = "agentsOnly"
 
 - name: update auto config for replica set
   add_agents_only_pods:

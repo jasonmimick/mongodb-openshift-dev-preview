@@ -133,6 +133,10 @@ curl -S --header "Accept: application/json" \
 This requires internet access for pods. Should bundle agent with
 Docker image or somehow.
 
+* Need to build `action` to bind applications to
+
+* TODO: Build sample app, e.g. simple web-app which reads/writes
+data to bound mongodb cluster.
 
 
 Contacts <a id="contact"></a>
