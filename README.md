@@ -14,7 +14,7 @@ You can now spin up MongoDB Enterprise replica sets within
 your own OpenShift environment with the click of
 a button.
 
-**DISCLAIMER**: This repository is for demonstration purposes only.
+<span style='color:red'>**DISCLAIMER**:</span> This repository is for demonstration purposes only.
 No assumptions should be made between this particular implementation
 and future supported products from MongoDB, Inc. Do not use this in
 anything close to a production environment. All support, as it is, takes
@@ -53,17 +53,21 @@ functionally how future MongoDB-supported product(s) will
 operate. The actual implementation of any such future product(s)
 is yet to be determined.
 
-OpenShift specfic, we use the new(er)
+OpenShift specific, we use the new(er)
 [Ansible Service Broker](https://github.com/openshift/ansible-service-broker)
 available in OpenShift v3.7+. This broker registered services
 to a central Service Catalog. The services are packaged as
 Ansible Playbook Bundles](https://github.com/ansibleplaybookbundle).
- These artifacts consitute the majority
+ These artifacts constitute the majority
 of the files in this repository.
 
+<span style='color:red'>**_NOTE!_**</span> Being a new, 'prototype' project there are a number of detailed
+steps required in order to use this functionality. Please be sure to
+read this entire README _before_ attempting to get started.
+Patience, young jedi, we call 'em README's for a reason.
 
 Getting Started <a id="gs"></a>
----------------
+-------------------------------
 
 ### Prerequisites
 
@@ -170,6 +174,13 @@ OPENSHIFT_TOKEN=$(oc whoami -t)
 docker login -u developer -p ${OPENSHIFT_TOKEN} 172.30.1.1:5000
 ```
 
+### Ops Manager Setup<a id="om-set"></a>
+
+* Enable
+[Public API access](https://docs.opsmanager.mongodb.com/current/tutorial/configure-public-api-access/)
+for your account
+  * Create an API key
+  * Add appropriate ips or `0.0.0.0/0` to the IP Whitelist
 
 Known Issues & Limitations<a id="issues"></a>
 ---------------------------------------------
@@ -235,3 +246,10 @@ For technical questions, issues, sales and marketting support,
 or just comments please email
 [jason.mimick@mongodb.com](mailto://jason.mimick@mongodb.com) and
 [dana.groce@mongodb.com](mailto://dana.groce@mongodb.com).
+
+---------
+This software is not supported by [MongoDB, Inc.](http://mongodb.com)
+under any of their commercial support subscriptions or otherwise.
+Any usage of the mongodb-openshift-dev-preview is at your own risk.
+Bug reports, feature requests and questions can be posted in the 
+[Issues](/issues?state=open) section on GitHub.
