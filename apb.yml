@@ -1,4 +1,4 @@
-opsMgrInfo: &opsMgrInfo
+agentsonly: &agentsonly
   - name: mms_base_url
     title: Ops Manager URL
     type: string
@@ -34,52 +34,104 @@ opsMgrInfo: &opsMgrInfo
     title: MongoDB Ops Manager API Timeout in seconds
     default: "30"
     type: string
-
-clusterInfo: &clusterInfo
   - name: cluster_name
     title: MongoDB Cluster Name
     type: string
     default: 
     required: True
+    display_group: MongoDB Cluster Configuration
   - name: mongodb_version
     title: MongoDB Version
     type: enum
     default: '3.4.13'
     enum: [ '3.4.13', '3.6.3' ]
     required: True
+    display_group: MongoDB Cluster Configuration
   - name: mongodb_port 
     title: Port for MongoDB to listen on
     type: string
     default: "27000"
     required: True
+    display_group: MongoDB Cluster Configuration
   - name: disk_size_gb
     title: Size in Gb for persistent storage claim on data node
     default: "5"
     type: string
-
-replSetInfo: &replSetInfo
-  - name: nodes_per_replicaset
-    title: Number of nodes in Replica Set
-    type: string 
-    default: "3"
-    required: True
-
-agentsOnlyInfo: &agentsOnlyInfo
+    display_group: MongoDB Cluster Configuration
   - name: number_of_agents_only_pods
     title: Number of agents-only pods
     type: string
     default: "13"
     required: True
+    display_group: MongoDB Agents Only Pods Configuration
 
 replicaset: &replicaset
-  <<: *opsMgrInfo
-  <<: *clusterInfo
-  <<: *replSetInfo
+  - name: mms_base_url
+    title: Ops Manager URL
+    type: string
+    required: True
+    default: 'http://localhost:8080'
+    display_group: MongoDB Ops Manager Configuration
+  - name: mms_user
+    title: Ops Manager user
+    type: string
+    required: True
+    default: jason.mimick@mongodb.com
+    display_group: MongoDB Ops Manager Configuration
+  - name: mms_user_apikey
+    title: User's Ops Manager API key
+    type: string
+    required: True
+    default: 0f4a72ee-d5c6-4729-aff0-81fbcb931f75
+    display_type: string
+    display_group: MongoDB Ops Manager Configuration
+  - name: mms_api_uri
+    title: MongoDB Ops Manager API URI
+    default: 'http://localhost:8080/api/public/v1.0'
+    type: string
+  - name: mms_project_name
+    title: Project to create replica set in
+    default: ""
+    type: string
+  - name: mms_default_orgId
+    title: Organization for new project
+    default: "5a9362d66cef470c375a9855"
+    type: string
+  - name: mms_api_timeout
+    title: MongoDB Ops Manager API Timeout in seconds
+    default: "30"
+    type: string
+  - name: cluster_name
+    title: MongoDB Cluster Name
+    type: string
+    default: 
+    required: True
+    display_group: MongoDB Cluster Configuration
+  - name: mongodb_version
+    title: MongoDB Version
+    type: enum
+    default: '3.4.13'
+    enum: [ '3.4.13', '3.6.3' ]
+    required: True
+    display_group: MongoDB Cluster Configuration
+  - name: mongodb_port 
+    title: Port for MongoDB to listen on
+    type: string
+    default: "27000"
+    required: True
+    display_group: MongoDB Cluster Configuration
+  - name: disk_size_gb
+    title: Size in Gb for persistent storage claim on data node
+    default: "5"
+    type: string
+    display_group: MongoDB Cluster Configuration
+  - name: nodes_per_replicaset
+    title: Number of nodes in Replica Set
+    type: string 
+    default: "3"
+    required: True
+    display_group: MongoDB Replica Set Configuration
 
-agentsonly: &agentsonly
-  <<: *opsMgrInfo
-  <<: *clusterInfo
-  <<: *agentsOnlyInfo
 
 
 version: 0.1
