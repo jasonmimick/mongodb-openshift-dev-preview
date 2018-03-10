@@ -25,12 +25,10 @@ echo "mmsBaseUrl=${MMS_BASE_URL_INTERNAL}"
 cat << ENDMMS >> /etc/mongodb-mms/automation-agent.config
 
 # ############################################
-# mms-k8s MongoDB Ops Manager Kubernetes StatefulSet Generator
 # Automatically updated on: `date`
 #
 # DO NOT EDIT!
 #
-# See: https://github.com/jasonmimick/k8s-mongodb-opsmanager
 # ############################################
 mmsGroupId=${MMS_GROUP_ID}
 mmsApiKey=${MMS_AGENT_APIKEY}
@@ -46,6 +44,6 @@ echo "Starting automation agent..."
 su -s "/bin/bash" -c "/opt/mongodb-mms-automation/bin/mongodb-mms-automation-agent \
 -f /etc/mongodb-mms/automation-agent.config \
 -pidfilepath /var/run/mongodb-mms-automation/mongodb-mms-automation-agent.pid" mongod
-echo "MongoDB Ops Manager automation agent stopped at `date`."
+echo "MongoDB Ops Manager automation agent started `date`."
 
 
