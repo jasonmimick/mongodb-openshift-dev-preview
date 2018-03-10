@@ -7,11 +7,11 @@ between the Red Hat Openshift PaaS and MongoDB Enterprise.
 You can now spin up MongoDB Enterprise replica sets within
 your own OpenShift environment.
 
-DISCLAIMER: This repository is for demonstration purposes only.
+**DISCLAIMER**: This repository is for demonstration purposes only.
 No assumptions should be made between this particular implementation
-and future support products of MongoDB, Inc. Do not use in anything
-close to a production environment. All support, as it is, takes
-a standard open-source model. Anyone interested can contribute 
+and future supported products from MongoDB, Inc. Do not use this in
+anything close to a production environment. All support, as it is, takes
+a standard open-source model. Anyone interested can contribute
 through GitHub.
 
 * [Introduction](#intro)
@@ -29,24 +29,24 @@ Introduction <a id="intro"></a>
 
 This repository contains artifacts which allow you to provision
 MongoDB replica sets and standalone instances into OpenShift. It
-leverages 
+leverages
 [MongoDB Ops Manager](https://www.mongodb.com/products/ops-manager)
-for automation, monitoring, alerting, and backup functionality. 
+for automation, monitoring, alerting, and backup functionality.
 The basic design uses OpenShift to provision pods (with 1
-container each running an instance of an automation agent) 
-and then invokes REST API calls to MongoDB Ops Manager which, 
+container each running an instance of an automation agent)
+and then invokes REST API calls to MongoDB Ops Manager which,
 in turn, installs MongoDB instances into each pod.
 
-Being a "developer preview" these artifacts can be treated as a 
-"functional prototype". Here we mean, this demonstrates 
+Being a "developer preview" these artifacts can be treated as a
+"functional prototype". Here we mean, this demonstrates
 functionally how future MongoDB-supported product(s) will
 operate. The actual implementation of any such future product(s)
 is yet to be determined.
 
-OpenShift specfic, we use the new(er) 
-[Ansible Service Broker](https://github.com/openshift/ansible-service-broker) 
+OpenShift specfic, we use the new(er)
+[Ansible Service Broker](https://github.com/openshift/ansible-service-broker)
 available in OpenShift v3.7+. This broker registered services
-to a central Service Catalog. The services are packaged as 
+to a central Service Catalog. The services are packaged as
 Ansible Playbook Bundles](https://github.com/ansibleplaybookbundle).
  These artifacts consitute the majority
 of the files in this repository.
@@ -57,11 +57,11 @@ Getting Started <a id="gs"></a>
 
 ### Prerequisites
 
-1. A working MongoDB Ops Manager installation. See 
+1. A working MongoDB Ops Manager installation. See
 [Ops Manager setup](#om-setup) for additional configuration steps.
 
-2. A working OpenShift environment, with the Ansible Service Broker. 
-A greate place to find info on building your development 
+2. A working OpenShift environment, with the Ansible Service Broker.
+A greate place to find info on building your development
 environment is in the [APB Getting Started](https://github.com/ansibleplaybookbundle/ansible-playbook-bundle/blob/master/docs/getting_started.md).
 
 3. Clone this repo
@@ -83,14 +83,17 @@ ui
 
 ### Provisioning MongoDB
 
-Known Issues <a id="issues"></a>
+Known Issues & Limitations<a id="issues"></a>
 
-1. MongoDB processes have startup warning because
+List of issues, Limitations, and to-dos. These should become "issues"
+as needed.
+
+* MongoDB processes have startup warning because
   * XFS filesystem isn't provisioned on persistent volumes
   * Database authentication is not enabled
-2. Sharded cluster deployments are yet supported (but possible by
+* Sharded cluster deployments are yet supported (but possible by
 manually deploying *agent-only* nodes).
-3. Deprovision not functional yet. Manually clean things, e.g.
+* Deprovision not functional yet. Manually clean things, e.g.
 
 
 ```
@@ -126,11 +129,10 @@ curl -S --header "Accept: application/json" \
  --request DELETE
 ```
 
+* `install-automation-agent.sh` script is downloaded from Github.
+This requires internet access for pods. Should bundle agent with
+Docker image or somehow.
 
-<!--
-Technical Details <a id="td"></a>
------------------
--->
 
 
 Contacts <a id="contact"></a>
@@ -140,4 +142,3 @@ For technical questions, issues, sales and marketting support,
 or just comments please email
 [jason.mimick@mongodb.com](mailto://jason.mimick@mongodb.com) and
 [dana.groce@mongodb.com](mailto://dana.groce@mongodb.com).
-

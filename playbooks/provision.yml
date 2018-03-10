@@ -8,7 +8,7 @@
   - role: ansibleplaybookbundle.asb-modules
   - role: create-group-by-name
     playbook_debug: true
-  - role: provision-my-test-app
+  - role: provision-mongodb-cluster
     playbook_debug: true
   - role: get-automation-agent-config
     playbook_debug: true
