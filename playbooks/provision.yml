@@ -1,12 +1,29 @@
-- name: my-test-app playbook to provision the application
+#
+# NOTE: Cluster hostname prefix is defined below and
+# general structure is defined below.
+# actual cluster names are built in the python
+# functions located in library/
+# (This is because multiple pods are typically deployed
+# per cluster, and each need's it's own unique part
+# of the hostname; the '%%pod%%' token is replaced
+# with an integer)
+#
+- name: provision some MongoDB Enterprise contraptions
   hosts: localhost
   gather_facts: false
   connection: local
-  set_fact:
-    mms_api_uri: "{{ mms_base_url }}/api/public/v1.0"
-    mms-cluster-hostname-prefix: "mongodb"
-    openshift_domain: "default.svc.cluster.local"
-    
+  pre_tasks:
+    - name: setup variables for roles
+        set_fact:
+          mms_api_uri: "{{ mms_base_url }}/api/public/v1.0"
+          cluster-hostname-prefix: "mongodb"
+          openshift_domain: "default.svc.cluster.local"
+          hostname_token: "%%pod%%"
+          temp: >-
+            "{{cluster_hostname_prefix}}-{{mms_project_name}}-{{mms_cluster_name}}-{{hostname_token}}.{{openshift_domain}}"
+          cluster_hostname: "{{ temp | lower }}"
+    - debug:
+      msg: "Using cluster hostname template: {{ cluster_hostname }}"
   roles:
   - role: ansible.kubernetes-modules
     install_python_requirements: no

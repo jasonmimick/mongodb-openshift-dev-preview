@@ -151,10 +151,11 @@ Dependencies<a id="depends"></a>
 * Docker Version 17.09.0-ce-mac35 (19611)
     * Some issue with very latest version for Mac
 
+Also see [Issues](/issues?state=open) for more tips.
+
 
 Development Environment Tips<a id="devenvtips"></a>
 ---------------------------------------------------
-
 
 *Note:* All development was done on macOS Sierra 10.12.6
 
@@ -191,72 +192,15 @@ for your account
 Known Issues & Limitations<a id="issues"></a>
 ---------------------------------------------
 
-List of issues, Limitations, and to-dos. These should become "issues"
-as needed.
+List of issues, Limitations, and to-dos.
 
-* MongoDB processes have startup warning because
-  * XFS filesystem isn't provisioned on persistent volumes
-  * Database authentication is not enabled
-* Sharded cluster deployments are yet supported (but possible by
-manually deploying *agent-only* nodes).
-* Deprovision not functional yet. To manually clean things, things
-like this work <span color='red'>WARNING!</span> this will
-scrub all mongo stuff.
-
-
-```
-oc get dc | grep mongodb- | cut -f1 -d' ' |\
- xargs oc delete dc --force=true
-oc get pvc | grep mongo- | cut -f1 -d' ' |\
- xargs oc delete pvc --force=true
-oc get statefulset | grep mongodb- | cut -f1 -d' ' |\
- xargs oc delete statefulset --force=true
-oc get svc | grep mongodb- | cut -f1 -d' ' |\
- xargs oc delete svc --force=true
-oc get pods | grep apb-run-provision-mongodb | cut -f1 -d' ' |\
- xargs oc delete pod --force=true
-```
-
-and to delete a bunch of old projects in MongoDB Ops Manager:
-
-```
-USER=$1
-APIKEY=$2
-
-curl -S --header "Accept: application/json" \
- -vvv \
- --user "${USER}:${APIKEY}" \
- --digest \
- "http://localhost:8080/api/public/v1.0/groups" |\
- jq -r ".results[].links[].href" |\
- xargs curl --header "Accept: application/json" \
- -vvv \
- --user "${USER}:${APIKEY}" \
- --digest \
- --include \
- --request DELETE
-```
-
-* `install-automation-agent.sh` script is downloaded from Github.
-This requires internet access for pods. Should bundle agent with
-Docker image or somehow.
-
-* Need to build `action` to bind applications to
-
-* TODO: Build sample app, e.g. simple web-app which reads/writes
-data to bound mongodb cluster.
-
-* Root cause why need to run `apb push` twice.
-
-* Possibly store Ops Mgr credentials and urls as secrets, do not
-require for each provision, but do allow overrides while
-provisioning.
-
+All issues and limitations have moved to the
+[Issues](/issues?state=open) part of this repo.
 
 Contacts <a id="contact"></a>
 -----------------------------
 
-For technical questions, issues, sales and marketting support,
+For technical questions, issues, sales and marketing support,
 or just comments please email
 [jason.mimick@mongodb.com](mailto://jason.mimick@mongodb.com) and
 [dana.groce@mongodb.com](mailto://dana.groce@mongodb.com).

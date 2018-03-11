@@ -3,14 +3,16 @@
 from ansible.module_utils.basic import *
 
 def gen_hostname(data,i)
-  prefix = data['mms_cluster_hostname_prefix']
-  project = data['mms_project_name']
-  cluster = data['mms_cluster-name']
-  domain = data['openshift_domain']
-  hostname = "%s-%s-%s-%s.%s" % (prefix,project,cluster,i,domain)
-  hostname = hostname.lower()   # doesn't like caps
-  print "gen_hostname => %s" % hostname
+  hostname = data['cluster_hostname'].replace(data['hostname_token'],i)
   return hostname
+#  prefix = data['mms_cluster_hostname_prefix']
+#  project = data['mms_project_name']
+#  cluster = data['mms_cluster-name']
+#  domain = data['openshift_domain']
+#  hostname = "%s-%s-%s-%s.%s" % (prefix,project,cluster,i,domain)
+#  hostname = hostname.lower()   # doesn't like caps
+#  print "gen_hostname => %s" % hostname
+#  return hostname
 
 def get_replica_set_index(replica_set_name,auto_config):
   doesnt_exist = False
