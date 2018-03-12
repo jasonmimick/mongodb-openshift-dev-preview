@@ -9,21 +9,21 @@
 # with an integer)
 #
 - name: provision some MongoDB Enterprise contraptions
+  strategy: debug
   hosts: localhost
-  gather_facts: false
+  #gather_facts: false
   connection: local
   pre_tasks:
     - name: setup variables for roles
-        set_fact:
-          mms_api_uri: "{{ mms_base_url }}/api/public/v1.0"
-          cluster-hostname-prefix: "mongodb"
-          openshift_domain: "default.svc.cluster.local"
-          hostname_token: "%%pod%%"
-          temp: >-
-            "{{cluster_hostname_prefix}}-{{mms_project_name}}-{{mms_cluster_name}}-{{hostname_token}}.{{openshift_domain}}"
-          cluster_hostname: "{{ temp | lower }}"
-    - debug:
-      msg: "Using cluster hostname template: {{ cluster_hostname }}"
+      set_fact:
+        mms_api_uri: "{{ mms_base_url }}/api/public/v1.0"
+        cluster_hostname_prefix: "mongodb"
+        openshift_domain: "default.svc.cluster.local"
+        hostname_token: "%%pod%%"
+    - name: build hostname
+      set_fact:
+        cluster_hostname: >-
+          "{{ cluster_hostname_prefix+'-'+mms_project_name+'-'+cluster_name+'-'+hostname_token+'.'+openshift_domain | lower }}"
   roles:
   - role: ansible.kubernetes-modules
     install_python_requirements: no

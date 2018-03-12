@@ -3,8 +3,7 @@ agentsonly: &agentsonly
     title: Ops Manager URL
     type: string
     required: True
-    #default: 'http://jasonsmacbook55.lan:8080'
-    default: 'jasonsmacbook55local.local'
+    default: 'http://jasonsmacbook55.lan:8080'
     display_group: MongoDB Ops Manager Configuration
   - name: mms_user
     title: Ops Manager user

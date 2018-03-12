@@ -4,13 +4,14 @@
 
 - debug:
     msg: "cluster_name={{ cluster_name }}"
-# agents-only plan
 
 - debug:
     msg: "ops-mgr-api role, executing agents-only plan"
 
 - name: update auto config for replica set
   add_agents_only_pods:
+    hostname_token: "{{ hostname_token }}"
+    cluster_hostname: "{{ cluster_hostname }}"
     cluster_name: "{{ cluster_name }}"  
     automation_config: "{{ automation_config.json }}"
     number_of_agents_only_pods: "{{ number_pods_aa }}"

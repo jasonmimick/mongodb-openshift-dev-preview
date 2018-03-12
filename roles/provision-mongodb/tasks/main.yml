@@ -18,37 +18,38 @@
 
 - name: Create Service
   k8s_v1_service:
-    name: "mongodb-service-{{ cluster_name }}"
+    name: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
     namespace: '{{ namespace }}'
     labels:
-      name: "mongodb-service-{{ cluster_name }}"
+      name: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
     spec_selector:
-      app: "mongodb-server-{{ cluster_name }}"
-      role: "mongodb-server-{{ cluster_name }}"
+      app: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
+      role: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
     spec_ports:
       - port: "{{ mongodb_port | int }}"
-    spec_cluster_ip: None
+    spec_type: NodePort
 
-- name: Set fact for number of replicas
+- name: Set fact for number of replicas rs
   set_fact:
     number_replicas : "{{ number_pods_rs }}"
-    when: number_pods_rs is defined
+  when: number_pods_rs is defined
+
+- name: Set fact for number of replicas aa
   set_fact:
     number_replicas: "{{ number_pods_aa }}"
-    when: number_pods_aa is defined
+  when: number_pods_aa is defined
 
 - name: Create StatefulSet
   k8s_v1beta1_stateful_set:
-    name: "mongodb-server-{{ cluster_name }}"
+    name: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
     namespace: '{{ namespace }}'
-    service_name: "mongodb-service-{{ cluster_name }}"
     replicas: "{{ number_replicas }}"
     spec_template_metadata_labels:
-      app: "mongodb-server-{{ cluster_name }}"
-      role: "mongodb-server-{{ cluster_name }}"
+      app: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
+      role: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
     spec_template_spec_termination_grace_period_seconds: 10
     containers:
-      - name: "mongodb-server-{{ cluster_name }}"
+      - name: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
         image: centos 
         env:
           - name: MMS_BASE_URL_INTERNAL

@@ -2,17 +2,10 @@
 
 from ansible.module_utils.basic import *
 
-def gen_hostname(data,i)
-  hostname = data['cluster_hostname'].replace(data['hostname_token'],i)
+def gen_hostname(data,i):
+  s = str(i)
+  hostname = data['cluster_hostname'].replace(data['hostname_token'],s)
   return hostname
-#  prefix = data['mms_cluster_hostname_prefix']
-#  project = data['mms_project_name']
-#  cluster = data['mms_cluster-name']
-#  domain = data['openshift_domain']
-#  hostname = "%s-%s-%s-%s.%s" % (prefix,project,cluster,i,domain)
-#  hostname = hostname.lower()   # doesn't like caps
-#  print "gen_hostname => %s" % hostname
-#  return hostname
 
 def get_replica_set_index(replica_set_name,auto_config):
   doesnt_exist = False
@@ -141,6 +134,8 @@ def replica_set_absent(data):
 def main():
 
   fields = {
+    "hostname_token" : { "required" : True, "type" : "str" },
+    "cluster_hostname" : { "required" : True, "type" : "str" },
     "cluster_name" : { "required" : True, "type" : "str" },
     "automation_config" : { "required" : True, "type" : "dict" },
     "replica_set_nodes" : { "type" : "int" },

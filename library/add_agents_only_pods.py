@@ -2,17 +2,10 @@
 
 from ansible.module_utils.basic import *
 
-def gen_hostname(data,i)
-  hostname = data['cluster_hostname'].replace(data['hostname_token'],i)
+def gen_hostname(data,i):
+  s = str(i)
+  hostname = data['cluster_hostname'].replace(data['hostname_token'],s)
   return hostname
-#  prefix = data['mms_cluster_hostname_prefix']
-#  project = data['mms_project_name']
-#  cluster = data['mms_cluster-name']
-#  domain = data['openshift_domain']
-#  hostname = "%s-%s-%s-%s.%s" % (prefix,project,cluster,i,domain)
-#  hostname = hostname.lower()   # doesn't like caps
-#  print "gen_hostname => %s" % hostname
-#  return hostname
 
 def project_present(data):
   
@@ -70,9 +63,11 @@ def project_absent(data):
 def main():
 
   fields = {
+    "hostname_token" : { "required" : True, "type" : "str" },
+    "cluster_hostname" : { "required" : True, "type" : "str" },
     "cluster_name" : { "required" : True, "type" : "str" },
     "automation_config" : { "required" : True, "type" : "dict" },
-    "number_of_agents_only_pods" : { "type" : "int" },
+    "number_of_agents_only_pods" : { "required" : True, "type" : "int" },
     "state" : { 
       "default" : "present",
       "choices" : [ "present", "absent" ],
