@@ -8,6 +8,7 @@
 # of the hostname; the '%%pod%%' token is replaced
 # with an integer)
 #
+#        cluster_hostname: "{{ cluster_prefix+'-'+mms_project_name+'-'+cluster_name+'-'+hostname_token+'.'+openshift_domain | lower }}"
 - name: provision some MongoDB Enterprise contraptions
   strategy: debug
   hosts: localhost
@@ -17,13 +18,18 @@
     - name: setup variables for roles
       set_fact:
         mms_api_uri: "{{ mms_base_url }}/api/public/v1.0"
-        cluster_hostname_prefix: "mongodb"
+        cluster_prefix: "mongodb"
         openshift_domain: "default.svc.cluster.local"
         hostname_token: "%%pod%%"
+    - name: build cluster names
+      set_fact:
+        cluster_secret: "{{ cluster_prefix }}-{{ cluster_name }}"
+        cluster_podname: "{{ cluster_prefix+'-'+mms_project_name+'-'+cluster_name | lower }}"
+        cluster_servicename: "{{ cluster_prefix+'-'+mms_project_name+'-'+cluster_name | lower }}"
+        cluster_hostname_pod: "{{ cluster_prefix+'-'+mms_project_name+'-'+cluster_name+'-'+hostname_token | lower }}"
     - name: build hostname
       set_fact:
-        cluster_hostname: >-
-          "{{ cluster_hostname_prefix+'-'+mms_project_name+'-'+cluster_name+'-'+hostname_token+'.'+openshift_domain | lower }}"
+        cluster_hostname: "{{ cluster_hostname_pod+'.'+cluster_servicename+'.'+openshift_domain | lower }}"
   roles:
   - role: ansible.kubernetes-modules
     install_python_requirements: no

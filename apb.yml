@@ -15,7 +15,7 @@ agentsonly: &agentsonly
     title: User's Ops Manager API key
     type: string
     required: True
-    default: 0f4a72ee-d5c6-4729-aff0-81fbcb931f75
+    default: "e6e6ab97-1434-4a76-8b7f-85ca43e6d156"
     display_type: string
     display_group: MongoDB Ops Manager Configuration
   - name: mms_project_name
@@ -25,7 +25,7 @@ agentsonly: &agentsonly
     display_group: MongoDB Ops Manager Configuration
   - name: mms_default_orgId
     title: Organization for new project
-    default: "5a9362d66cef470c375a9855"
+    default: "5aa7bddc6cef4769d1f4a64c"
     type: string
     display_group: MongoDB Ops Manager Configuration
   - name: mms_api_timeout
@@ -44,6 +44,18 @@ agentsonly: &agentsonly
     type: enum
     default: '3.4.13'
     enum: [ '3.4.13', '3.6.3' ]
+    required: True
+    display_group: MongoDB Cluster Configuration
+  - name: mongodb_dbpath
+    title: Path for data files
+    type: string
+    default: "/data"
+    required: True
+    display_group: MongoDB Cluster Configuration
+  - name: mongodb_logpath
+    title: Full path and name of database logfile
+    type: string
+    default: "/data/mongodb.log"
     required: True
     display_group: MongoDB Cluster Configuration
   - name: mongodb_port 
@@ -81,7 +93,7 @@ replicaset: &replicaset
     title: User's Ops Manager API key
     type: string
     required: True
-    default: 0f4a72ee-d5c6-4729-aff0-81fbcb931f75
+    default: "e6e6ab97-1434-4a76-8b7f-85ca43e6d156"
     display_type: string
     display_group: MongoDB Ops Manager Configuration
   - name: mms_project_name
@@ -90,7 +102,7 @@ replicaset: &replicaset
     type: string
   - name: mms_default_orgId
     title: Organization for new project
-    default: "5a9362d66cef470c375a9855"
+    default: "5aa7bddc6cef4769d1f4a64c"
     type: string
     display_group: MongoDB Ops Manager Configuration
   - name: mms_api_timeout
@@ -109,6 +121,18 @@ replicaset: &replicaset
     type: enum
     default: '3.4.13'
     enum: [ '3.4.13', '3.6.3' ]
+    required: True
+    display_group: MongoDB Cluster Configuration
+  - name: mongodb_dbpath
+    title: Path for data files
+    type: string
+    default: "/data"
+    required: True
+    display_group: MongoDB Cluster Configuration
+  - name: mongodb_logpath
+    title: Full path and name of database logfile
+    type: string
+    default: "/data/mongodb.log"
     required: True
     display_group: MongoDB Cluster Configuration
   - name: mongodb_port 

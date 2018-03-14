@@ -42,7 +42,7 @@ Introduction <a id="intro"></a>
 The artifacts within allow one to provision
 MongoDB replica sets and agents-only pods into
 OpenShift. It leverages
-[MongoDB Ops Manager](https://www.mongodb.com/products/ops-manager)
+[MongoDB Ops Manager](https://www.mongodb.com/download-center?jmp=partners_OpenShift#ops-manager)
 for automation, monitoring, alerting, and backup functionality.
 The basic design uses OpenShift to provision pods, each with 1
 container running an instance of an automation agent.

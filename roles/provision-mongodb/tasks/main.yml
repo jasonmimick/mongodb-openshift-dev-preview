@@ -7,7 +7,7 @@
 ##############################################################################
 - name: Create secrets for MongoDB Automation Agents
   k8s_v1_secret:
-    name: "mongodb-{{ cluster_name }}"
+    name: "{{ cluster_secret }}"
     namespace: '{{ namespace }}'
     type: Opaque
     state: present
@@ -18,16 +18,18 @@
 
 - name: Create Service
   k8s_v1_service:
-    name: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
+    name: "{{ cluster_servicename }}"
     namespace: '{{ namespace }}'
     labels:
-      name: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
+      name: "{{ cluster_servicename }}"
     spec_selector:
-      app: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
-      role: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
+      app: "{{ cluster_servicename }}"
+      role: "{{ cluster_servicename }}"
     spec_ports:
       - port: "{{ mongodb_port | int }}"
-    spec_type: NodePort
+        target_port: 27000
+        name: "mongodb-port"
+    spec_cluster_ip: None
 
 - name: Set fact for number of replicas rs
   set_fact:
@@ -41,31 +43,32 @@
 
 - name: Create StatefulSet
   k8s_v1beta1_stateful_set:
-    name: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
+    name: "{{ cluster_podname }}"
     namespace: '{{ namespace }}'
+    spec_service_name: "{{ cluster_servicename }}"
     replicas: "{{ number_replicas }}"
     spec_template_metadata_labels:
-      app: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
-      role: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
+      app: "{{ cluster_podname }}"
+      role: "{{ cluster_podname }}"
     spec_template_spec_termination_grace_period_seconds: 10
     containers:
-      - name: "mongodb-{{ cluster_name }}-{{ mms_project_name }}"
+      - name: "{{ cluster_podname }}"
         image: centos 
         env:
           - name: MMS_BASE_URL_INTERNAL
             valueFrom: 
               secretKeyRef:
-                name: "mongodb-{{ cluster_name }}"
+                name: "{{ cluster_secret }}"
                 key: base-url
           - name: MMS_AGENT_APIKEY
             valueFrom: 
               secretKeyRef:
-                name: "mongodb-{{ cluster_name }}"
+                name: "{{ cluster_secret }}"
                 key: agent-apikey
           - name: MMS_GROUP_ID
             valueFrom: 
               secretKeyRef:
-                name: "mongodb-{{ cluster_name }}"
+                name: "{{ cluster_secret }}"
                 key: group-id
           - name: MMS_BOOTSTRAP_URL
             value: "https://raw.githubusercontent.com/jasonmimick/mongodb-openshift-dev-preview/master/install-automation-agent.sh"

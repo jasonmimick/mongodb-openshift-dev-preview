@@ -60,55 +60,8 @@ def replica_set_present(data):
              "meta" : "replica set %s was already there?" % replica_set_name }
     
   
-  # TODO: Move these default values into playbook params
-  rs = { "_id" : replica_set_name, "members" : [ ] }
-  auto_config['replicaSets'].append(rs)
-  processes = []
-  backupVersions = []
-  monitoringVersions = []
-  for i in range(0,number_nodes):
-    hostname = gen_hostname(data,i)
-    rs_member = {}
-    rs_member.update( {'_id' : i} )
-    rs_member.update( get_nvpair('arbiterOnly',False) )
-    rs_member.update( get_nvpair('hidden',False) )
-    rs_member.update({'host' : hostname})
-    rs_member.update( get_nvpair('priority',1.0) )
-    rs_member.update( get_nvpair('slaveDelay',0) )
-    rs_member.update( get_nvpair('votes',1) )
-    auto_config['replicaSets'][replica_set_index]['members'].append(rs_member)
-    process = {}
-    process['args2_6']= {
-        'net' : { 'port' : 27000 },
-        'replication' : { 'replSetName' : replica_set_name },
-        'storage' : { 'dbPath' : '/data' },
-        'systemLog' : { 'destination' : 'file',
-                        'path' : '/data/mongodb.log' },
-    }
-    process['logRotate'] = { 'sizeThresholdMB': 1000,
-                             'timeThresholdHrs': 24
-    }
-    process['hostname'] = hostname
-    #process['name'] = 'mongodb-server-%s-%s' % (replica_set_name,i)
-    process['name'] = hostname
-    process['processType'] = 'mongod'
-    process['version'] = data['mongodb_version']
-    process['authSchemaVersion'] = 5
-    process['featureCompatibilityVersion'] = data['mongodb_version'][0:3]
-    processes.append( process )
-    backupVersion = { "hostname": hostname }
-
-    #     "logPath": "/var/vcap/sys/log/mongod_node/backup-agent.log",$
-    #     "logRotate": {$
-    #         "sizeThresholdMB": 1000,$
-    #         "timeThresholdHrs": 24$
-    monitoringVersion = { "hostname": hostname }
-    backupVersions.append( backupVersion )
-    monitoringVersions.append( monitoringVersion )
-  auto_config['processes']=processes
-  # add agents
-  auto_config['backupVersions']=backupVersions
-  auto_config['monitoringVersions']=monitoringVersions
+  auto_config = gen_repl_set_auto_config( data )
+ 
  
   return { "auto_config" : auto_config, "meta" : "Added replica set %s" % replica_set_name }
 
@@ -136,8 +89,11 @@ def main():
   fields = {
     "hostname_token" : { "required" : True, "type" : "str" },
     "cluster_hostname" : { "required" : True, "type" : "str" },
+    "mongodb_logpath" : { "required" : True, "type" : "str" },
+    "mongodb_dbpath" : { "required" : True, "type" : "str" },
     "cluster_name" : { "required" : True, "type" : "str" },
     "automation_config" : { "required" : True, "type" : "dict" },
+    "mongodb_port" : { "type" : "int" },
     "replica_set_nodes" : { "type" : "int" },
     "mongodb_version" : { "type" : "str", "required" : True },
     "state" : { 
@@ -157,6 +113,78 @@ def main():
   response = choice_map.get(module.params['state'])(module.params)
   module.exit_json(changed=False, meta=response)
 
+def gen_repl_set_auto_config( data ): 
+    rs = { "options": {
+        "downloadBase": "/var/lib/mongodb-mms-automation"
+         },
+         "mongoDbVersions": [
+             {"name": data['mongodb_version']}
+         ],
+         "backupVersions": [],
+         "monitoringVersions": [],
+         "processes": [],
+         "replicaSets": [
+             { "_id" : data['cluster_name'],
+               "members" : []
+             }
+          ],
+          "roles": [],
+          "sharding": []
+    }
+    
+    for i in range(0,number_nodes):
+        hostname = gen_hostname(data,i)
+        b = {
+            "hostname": hostname,
+            "logRotate": {
+                "sizeThresholdMB": 1000,
+                "timeThresholdHrs": 24
+            }
+        }
+        rs['backupVersions'].append(b)
+        m = {
+            "hostname": hostname,
+            "logRotate": {
+                "sizeThresholdMB": 1000,
+                "timeThresholdHrs": 24
+            }
+        }
+        rs['monitoringVersions'].append(m)
+        p = {
+            "args2_6": {
+                "net": {
+                    "port": data['mongodb_port']
+                },
+                "replication": {
+                    "replSetName": data['cluster_name']
+                },
+                "storage": {
+                    "dbPath": data['mongodb_dbpath'] 
+                },
+                "systemLog": {
+                    "destination": "file",
+                    "path": data['mongodb_logpath']
+                }
+            },
+            "hostname": hostname,
+            "logRotate": {
+                "sizeThresholdMB": 1000,
+                "timeThresholdHrs": 24
+            },
+            "name": hostname,
+            "processType": "mongod",
+            "version": data['mongodb_version'],
+            "featureCompatibilityVersion": data['mongodb_version'][0:3],
+            "authSchemaVersion": 5
+        }
+        rs['processes'].append(p)
+        rs_member = {
+            "_id": i,
+            "host": data['cluster_name']
+        }
+        rs['replicaSets'][0]['members'].append(rs_member)
+        
+        return rs
 
 if __name__ == '__main__':  
     main()
