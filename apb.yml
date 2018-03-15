@@ -179,7 +179,7 @@ plans:
     free: True
     metadata:
       description: MongoDB Agents-Only
-      longDescription: This plan deploys some number of pods each with only 1 of each type of MongoDB Ops Manager agent. No actual MongoDB instances are provisioned. Each agent is associated with the desired project. This base pos allows users to configure more advanced clusters directly through MongoDB Ops Manager.
+      longDescription: This plan deploys some number of pods each with only 1 of each type of MongoDB Ops Manager agent. No actual MongoDB instances are provisioned. Each agent is associated with the desired project. This base pod allows users to configure more advanced clusters directly through MongoDB Ops Manager.
       cost: $1,000,000US
     parameters: *agentsonly
 

@@ -16,6 +16,9 @@
     cluster_name: "{{ cluster_name }}"
     automation_config: "{{ automation_config.json }}"
     replica_set_nodes: "{{ number_pods_rs }}"
+    mongodb_logpath: "{{ mongodb_logpath }}"
+    mongodb_dbpath: "{{ mongodb_dbpath }}"
+    mongodb_port: "{{ mongodb_port }}"
     mongodb_version: "{{ mongodb_version }}"
   register: add_replica_set_response
 

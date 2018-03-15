@@ -24,7 +24,6 @@
       name: "{{ cluster_servicename }}"
     spec_selector:
       app: "{{ cluster_servicename }}"
-      role: "{{ cluster_servicename }}"
     spec_ports:
       - port: "{{ mongodb_port | int }}"
         target_port: 27000
@@ -45,11 +44,11 @@
   k8s_v1beta1_stateful_set:
     name: "{{ cluster_podname }}"
     namespace: '{{ namespace }}'
-    spec_service_name: "{{ cluster_servicename }}"
     replicas: "{{ number_replicas }}"
+
     spec_template_metadata_labels:
-      app: "{{ cluster_podname }}"
-      role: "{{ cluster_podname }}"
+      app: "{{ cluster_servicename }}"
+    spec_service_name: "{{ cluster_servicename }}"
     spec_template_spec_termination_grace_period_seconds: 10
     containers:
       - name: "{{ cluster_podname }}"

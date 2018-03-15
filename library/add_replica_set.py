@@ -60,7 +60,7 @@ def replica_set_present(data):
              "meta" : "replica set %s was already there?" % replica_set_name }
     
   
-  auto_config = gen_repl_set_auto_config( data )
+  auto_config = gen_repl_set_auto_config( data, number_nodes )
  
  
   return { "auto_config" : auto_config, "meta" : "Added replica set %s" % replica_set_name }
@@ -93,8 +93,8 @@ def main():
     "mongodb_dbpath" : { "required" : True, "type" : "str" },
     "cluster_name" : { "required" : True, "type" : "str" },
     "automation_config" : { "required" : True, "type" : "dict" },
-    "mongodb_port" : { "type" : "int" },
-    "replica_set_nodes" : { "type" : "int" },
+    "mongodb_port" : { "type" : "int", "default" : 27000 },
+    "replica_set_nodes" : { "type" : "int", "default" : 3 },
     "mongodb_version" : { "type" : "str", "required" : True },
     "state" : { 
       "default" : "present",
@@ -113,7 +113,7 @@ def main():
   response = choice_map.get(module.params['state'])(module.params)
   module.exit_json(changed=False, meta=response)
 
-def gen_repl_set_auto_config( data ): 
+def gen_repl_set_auto_config( data, number_nodes ): 
     rs = { "options": {
         "downloadBase": "/var/lib/mongodb-mms-automation"
          },
@@ -153,7 +153,8 @@ def gen_repl_set_auto_config( data ):
         p = {
             "args2_6": {
                 "net": {
-                    "port": data['mongodb_port']
+                    "port": data['mongodb_port'],
+                    "bindIp": "0.0.0.0"
                 },
                 "replication": {
                     "replSetName": data['cluster_name']
@@ -180,11 +181,11 @@ def gen_repl_set_auto_config( data ):
         rs['processes'].append(p)
         rs_member = {
             "_id": i,
-            "host": data['cluster_name']
+            "host": hostname
         }
         rs['replicaSets'][0]['members'].append(rs_member)
         
-        return rs
+    return rs
 
 if __name__ == '__main__':  
     main()
