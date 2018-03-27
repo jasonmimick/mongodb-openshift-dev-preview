@@ -134,6 +134,7 @@ def gen_repl_set_auto_config( data, number_nodes ):
     
     for i in range(0,number_nodes):
         hostname = gen_hostname(data,i)
+        name = "%s_%d" % ( data['cluster_name'], i)
         b = {
             "hostname": hostname,
             "logRotate": {
@@ -172,7 +173,7 @@ def gen_repl_set_auto_config( data, number_nodes ):
                 "sizeThresholdMB": 1000,
                 "timeThresholdHrs": 24
             },
-            "name": hostname,
+            "name": name,
             "processType": "mongod",
             "version": data['mongodb_version'],
             "featureCompatibilityVersion": data['mongodb_version'][0:3],
@@ -181,7 +182,7 @@ def gen_repl_set_auto_config( data, number_nodes ):
         rs['processes'].append(p)
         rs_member = {
             "_id": i,
-            "host": hostname
+            "host": name
         }
         rs['replicaSets'][0]['members'].append(rs_member)
         

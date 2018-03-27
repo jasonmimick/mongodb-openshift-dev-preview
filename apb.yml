@@ -15,7 +15,7 @@ agentsonly: &agentsonly
     title: User's Ops Manager API key
     type: string
     required: True
-    default: "e6e6ab97-1434-4a76-8b7f-85ca43e6d156"
+    default: "01804670-3aa4-4e61-a978-0f3b427e3ed4"
     display_type: string
     display_group: MongoDB Ops Manager Configuration
   - name: mms_project_name
@@ -25,7 +25,7 @@ agentsonly: &agentsonly
     display_group: MongoDB Ops Manager Configuration
   - name: mms_default_orgId
     title: Organization for new project
-    default: "5aa7bddc6cef4769d1f4a64c"
+    default: "5aafd7af6cef470b4fa811a2"
     type: string
     display_group: MongoDB Ops Manager Configuration
   - name: mms_api_timeout
@@ -81,7 +81,7 @@ replicaset: &replicaset
     title: Ops Manager URL
     type: string
     required: True
-    default: 'http://jasonsmacbook55local.local:8080'
+    default: 'http://jasonsmacbook55.lan:8080'
     display_group: MongoDB Ops Manager Configuration
   - name: mms_user
     title: Ops Manager user
@@ -93,7 +93,7 @@ replicaset: &replicaset
     title: User's Ops Manager API key
     type: string
     required: True
-    default: "e6e6ab97-1434-4a76-8b7f-85ca43e6d156"
+    default: "01804670-3aa4-4e61-a978-0f3b427e3ed4"
     display_type: string
     display_group: MongoDB Ops Manager Configuration
   - name: mms_project_name
@@ -102,7 +102,7 @@ replicaset: &replicaset
     type: string
   - name: mms_default_orgId
     title: Organization for new project
-    default: "5aa7bddc6cef4769d1f4a64c"
+    default: "5aafd7af6cef470b4fa811a2"
     type: string
     display_group: MongoDB Ops Manager Configuration
   - name: mms_api_timeout

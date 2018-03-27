@@ -22,12 +22,12 @@
     namespace: '{{ namespace }}'
     labels:
       name: "{{ cluster_servicename }}"
+      replSet: "{{ cluster_name }}"
     spec_selector:
       app: "{{ cluster_servicename }}"
     spec_ports:
       - port: "{{ mongodb_port | int }}"
-        target_port: 27000
-        name: "mongodb-port"
+        name: "{{ cluster_podname }}"
     spec_cluster_ip: None
 
 - name: Set fact for number of replicas rs
