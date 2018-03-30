@@ -73,31 +73,31 @@ objects:
           - /bin/sh
           - -c
           - >
-            source /mms-config/mms-env.sh
-            AGENT_URL=${MMS_BASE_URL_INTERNAL}/download/agent/automation/
-            AGENT=mongodb-mms-automation-agent-manager-
-            AGENT_VERSION=4.5.12.2514-1.x86_64.rhel7.rpm
-            echo "Downloading $AGENT_URL$AGENT$AGENT_VERSION"
-            curl -OL "$AGENT_URL$AGENT$AGENT_VERSION"
-            echo "Installing $AGENT$AGENT_VERSION"
-            rpm -U $AGENT$AGENT_VERSION
-            echo "Updating /etc/mongodb-mms/automation-agent.config with:"
-            echo "mmsGroupId=${MMS_GROUP_ID}"
-            echo "mmsApiKey=${MMS_AGENT_APIKEY}"
-            echo "mmsBaseUrl=${MMS_BASE_URL_INTERNAL}"
-            echo "mmsGroupId=${MMS_GROUP_ID}" >> /etc/mongodb-mms/automation-agent.config
-            echo "mmsApiKey=${MMS_AGENT_APIKEY}" >> /etc/mongodb-mms/automation-agent.config
-            echo "mmsBaseUrl=${MMS_BASE_URL_INTERNAL}" >> /etc/mongodb-mms/automation-agent.config
-            useradd mongod
-            chown mongod:mongod /data
-            echo "Creating /var/run/mongodb-mms-automation"
-            /usr/bin/mkdir -p /var/run/mongodb-mms-automation
-            /usr/bin/chown -R mongod:mongod /var/run/mongodb-mms-automation
-            echo "Starting automation agent..."
-            su -s "/bin/bash" -c "/opt/mongodb-mms-automation/bin/mongodb-mms-automation-agent \
-            -f /etc/mongodb-mms/automation-agent.config \
-            -pidfilepath /var/run/mongodb-mms-automation/mongodb-mms-automation-agent.pid" mongod
-            echo "MongoDB Ops Manager automation agent started `date`."
+            source /mms-config/mms-env.sh \
+            AGENT_URL=${MMS_BASE_URL_INTERNAL}/download/agent/automation/ /
+            AGENT=mongodb-mms-automation-agent-manager- /
+            AGENT_VERSION=4.5.12.2514-1.x86_64.rhel7.rpm /
+            echo "Downloading $AGENT_URL$AGENT$AGENT_VERSION" /
+            curl -OL "$AGENT_URL$AGENT$AGENT_VERSION" /
+            echo "Installing $AGENT$AGENT_VERSION" /
+            rpm -U $AGENT$AGENT_VERSION /
+            echo "Updating /etc/mongodb-mms/automation-agent.config with:" /
+            echo "mmsGroupId=${MMS_GROUP_ID}" /
+            echo "mmsApiKey=${MMS_AGENT_APIKEY}" /
+            echo "mmsBaseUrl=${MMS_BASE_URL_INTERNAL}" /
+            echo "mmsGroupId=${MMS_GROUP_ID}" >> /etc/mongodb-mms/automation-agent.config /
+            echo "mmsApiKey=${MMS_AGENT_APIKEY}" >> /etc/mongodb-mms/automation-agent.config /
+            echo "mmsBaseUrl=${MMS_BASE_URL_INTERNAL}" >> /etc/mongodb-mms/automation-agent.config /
+            useradd mongod /
+            chown mongod:mongod /data /
+            echo "Creating /var/run/mongodb-mms-automation" /
+            /usr/bin/mkdir -p /var/run/mongodb-mms-automation /
+            /usr/bin/chown -R mongod:mongod /var/run/mongodb-mms-automation /
+            echo "Starting automation agent..." /
+            su -s "/bin/bash" -c "/opt/mongodb-mms-automation/bin/mongodb-mms-automation-agent \ /
+            -f /etc/mongodb-mms/automation-agent.config \ /
+            -pidfilepath /var/run/mongodb-mms-automation/mongodb-mms-automation-agent.pid" mongod /
+            echo "MongoDB Ops Manager automation agent started `date`." /
           env:
           - name: MMS_BASE_URL_INTERNAL
             valueFrom:
@@ -114,8 +114,6 @@ objects:
               secretKeyRef:
                 key: group-id
                 name: ${CLUSTER_NAME}-secret
-          - name: MMS_BOOTSTRAP_URL
-            value: https://raw.githubusercontent.com/jasonmimick/mongodb-openshift-dev-preview/master/install-automation-agent.sh
           image: centos
           name: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
           ports: null
@@ -125,9 +123,9 @@ objects:
           - mountPath: /mms-config
             name: mms-config
         terminationGracePeriodSeconds: "10"
-      volumes:
-      - name: mms-config
-        emptyDir: {}
+        volumes:
+        - name: mms-config
+          emptyDir: {}
     volumeClaimTemplates:
     - name: "pvc"
       metadata:
@@ -161,7 +159,7 @@ parameters:
   displayName: Ops Manager URL
   name: MMS_BASE_URL
   required: true
-  value: http://jasonsmacbook55.lan:8080
+  value: http://opsmgr.mongodbpartners.net:808/
 - description: MongoDB Ops Manager User
   displayName: Ops Manager user
   name: MMS_USER
