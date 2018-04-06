@@ -1,0 +1,234 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: mongodb-openshift-dev-preview-template
+message: |-
+  This is the MongoDB Enterprise Openshift Developer Preview.
+  Sweet!
+metadata:
+  annotations:
+    description: |-
+      Provisions MongoDB replica set and agent-only pods which are managed by MongoDB Ops Manager.
+      NOTE: Sharded clusters are not supported yet. Security is not automatically enabled.
+    iconClass: icon-mongodb
+    openshift.io/display-name: MongoDB Enterprise
+    openshift.io/documentation-url: https://docs.openshift.org/latest/using_images/db_images/mongodb.html
+    openshift.io/long-description: This template provisions a MongoDB replica set
+      which is managed by an instance of MongoDB Ops Manager.
+    openshift.io/provider-display-name: MongoDB, Inc.
+    openshift.io/support-url: https://access.redhat.com
+    tags: database,mongodb
+  name: mongodb-openshift-dev-preview
+  uid: d50820c0-32ef-11e8-944b-12f4b1c41cea
+objects:
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    annotations:
+      template.openshift.io/expose-base-url: '{.data[''MMS_BASE_URL'']}'
+      template.openshift.io/expose-user: '{.data[''MMS_USER'']}'
+      template.openshift.io/expose-user-apikey: '{.data[''MMS_USER_APIKEY'']}'
+    name: ${CLUSTER_NAME}-secret
+  namespace: ${NAMESPACE}
+  state: present
+  stringData:
+    base-url: ${MMS_BASE_URL}
+    mms-user: ${MMS_USER}
+    mms-user-apikey: ${MMS_USER_APIKEY}
+  type: Opaque
+- apiVersion: apps/v1beta1
+  kind: StatefulSet
+  metadata:
+    name: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
+  spec:
+    replicas: ${NUMBER_PODS_RS}
+    serviceName: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
+    template:
+      metadata:
+        labels:
+          app: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
+      spec:
+        initContainers:
+        - name: mms-api-predeploy
+          image: centos
+          command:
+          - /bin/sh
+          - -c
+          - |
+            set -ex
+            echo "Attempt to configure MongoDB Ops Manager Project & apikeys"
+            echo "Fetch MongoDB Ops Manager project (group) information"
+            echo "(next command does a POST with the project name, this will either create a project or return project information)"
+            curl --header "Content-Type: application/json" --header "Accept: application/json" -u "${MMS_USER}:${MMS_USER_APIKEY}" --digest "${MMS_BASE_URL}api/public/v1.0/groups" -d '{"name":"${MMS_PROJECT_NAME"}' > /mms-config/group.${MMS_PROJECT_NAME}.json
+            MMS_GROUP_ID=$(cat /mms-config/group.${MMS_PROJECT_NAME}.json | python -c 'import sys, json; r = json.load(sys.stdin);print r["id"]')
+            MMS_AGENT_APIKEY=$(cat /mms-config/group.${MMS_PROJECT_NAME}.json | python -c 'import sys, json; r = json.load(sys.stdin);print r["agentApiKey"]')
+            echo "Found MMS_GROUP_ID=${MMS_GROUP_ID} for Ops Manager Project '${MMS_PROJECT_NAME}'"
+            echo "Found MMS_AGENT_APIKEY=${MMS_AGENT_APIKEY} for Ops Manager Project '${MMS_PROJECT_NAME}'"
+            echo "#!/bin/sh" >> /mms-config/mms-env.sh
+            echo "MMS_GROUP_ID=${MMS_GROUP_ID}" >> /mms-config/mms-env.sh
+            echo "MMS_AGENT_APIKEY=${MMS_AGENT_APIKEY}" >> /mms-config/mms-env.sh
+          volumeMounts:
+          - name: mms-config
+            mountPath: /mms-config
+          env:
+          - name: MMS_BASE_URL
+            valueFrom:
+              secretKeyRef:
+                key: base-url
+                name: ${CLUSTER_NAME}-secret
+          - name: MMS_USER
+            valueFrom:
+              secretKeyRef:
+                key: user
+                name: ${CLUSTER_NAME}-secret
+          - name: MMS_USER_APIKEY
+            valueFrom:
+              secretKeyRef:
+                key: user-apikey
+                name: ${CLUSTER_NAME}-secret
+          - name: MMS_PROJECT_NAME
+            valueFrom:
+              secretKeyRef:
+                key: project-name
+                name: ${CLUSTER_NAME}-secret
+        containers:
+        - args:
+          command:
+          - /bin/sh
+          - -c
+          - |
+            set -ex
+            source /mms-config/mms-env.sh 
+            AGENT_URL=${MMS_BASE_URL_INTERNAL}download/agent/automation/  
+            AGENT=mongodb-mms-automation-agent-manager- 
+            AGENT_VERSION=4.5.12.2514-1.x86_64.rhel7.rpm 
+            echo "Downloading $AGENT_URL$AGENT$AGENT_VERSION" 
+            curl -OL "$AGENT_URL$AGENT$AGENT_VERSION" 
+            echo "Installing $AGENT$AGENT_VERSION" 
+            rpm -U $AGENT$AGENT_VERSION 
+            echo "Updating /etc/mongodb-mms/automation-agent.config with:" 
+            echo "mmsGroupId=${MMS_GROUP_ID}" 
+            echo "mmsApiKey=${MMS_AGENT_APIKEY}" 
+            echo "mmsBaseUrl=${MMS_BASE_URL_INTERNAL}" 
+            echo "mmsGroupId=${MMS_GROUP_ID}" > /etc/mongodb-mms/automation-agent.config 
+            echo "mmsApiKey=${MMS_AGENT_APIKEY}" >> /etc/mongodb-mms/automation-agent.config 
+            echo "mmsBaseUrl=${MMS_BASE_URL_INTERNAL}" >> /etc/mongodb-mms/automation-agent.config 
+            useradd mongod 
+            chown mongod:mongod /data 
+            echo "Creating /var/run/mongodb-mms-automation" 
+            /usr/bin/mkdir -p /var/run/mongodb-mms-automation 
+            /usr/bin/chown -R mongod:mongod /var/run/mongodb-mms-automation 
+            echo "Starting automation agent..." 
+            su -s "/bin/bash" -c "/opt/mongodb-mms-automation/bin/mongodb-mms-automation-agent  
+            -f /etc/mongodb-mms/automation-agent.config  
+            -pidfilepath /var/run/mongodb-mms-automation/mongodb-mms-automation-agent.pid" mongod 
+            echo "MongoDB Ops Manager automation agent started `date`." 
+          env:
+          - name: MMS_BASE_URL_INTERNAL
+            valueFrom:
+              secretKeyRef:
+                key: base-url
+                name: ${CLUSTER_NAME}-secret
+          image: centos
+          name: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
+          ports: null
+          volumeMounts:
+          - mountPath: /data
+            name: pvc
+          - mountPath: /mms-config
+            name: mms-config
+        terminationGracePeriodSeconds: "10"
+        volumes:
+        - name: mms-config
+          emptyDir: {}
+    volumeClaimTemplates:
+    - name: "pvc"
+      metadata:
+        name: "pvc"
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: ${DISK_SIZE_GB}Gi
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      name: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
+      replSet: ${CLUSTER_NAME}
+    name: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
+  spec:
+    clusterIp: None
+    ports:
+    - name: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
+      port: ${MONGODB_PORT}
+    selector:
+      app: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
+parameters:
+- description: Maximum amount of memory the container can use.
+  displayName: Memory Limit
+  name: MEMORY_LIMIT
+  required: true
+  value: 512Mi
+- description: URL for MongoDB Ops Manager
+  displayName: Ops Manager URL
+  name: MMS_BASE_URL
+  required: true
+  value: http://opsmgr.mongodbpartners.net:8080/
+- description: MongoDB Ops Manager User
+  displayName: Ops Manager user
+  name: MMS_USER
+  required: true
+  value: jason.mimick@mongodb.com
+- description: MongoDB Ops Manager API key for user
+  displayName: User"s Ops Manager API key
+  name: MMS_USER_APIKEY
+  required: true
+  value: 01804670-3aa4-4e61-a978-0f3b427e3ed4
+- description: Name for Ops Manager Project
+  displayName: Project to create replica set in
+  from: openshift-[a-z0-9]{3}
+  generate: expression
+  name: MMS_PROJECT_NAME
+  required: true
+- description: API Timeout
+  displayName: MongoDB Ops Manager API Timeout in seconds
+  name: MMS_API_TIMEOUT
+  required: true
+  value: "30"
+- description: Cluster Name
+  displayName: MongoDB Cluster Name
+  from: cluster-[a-z0-9]{5}
+  generate: expression
+  name: CLUSTER_NAME
+  required: true
+- description: Version of MongoDB to deploy
+  displayName: MongoDB Version
+  name: MONGODB_VERSION
+  required: true
+  value: 3.4.13
+- description: Path for MongoDB data files in container
+  displayName: Path for data files
+  name: MONGODB_DBPATH
+  required: true
+  value: /data
+- description: Log file destination
+  displayName: Full path and name of database logfile
+  name: MONGODB_LOGPATH
+  required: true
+  value: /data/mongodb.log
+- description: MongoDB port
+  displayName: Port for MongoDB to listen on
+  name: MONGODB_PORT
+  required: true
+  value: "27000"
+- description: Size of disk
+  displayName: Size in Gb for persistent storage claim on data node
+  name: DISK_SIZE_GB
+  required: true
+  value: "5"
+- description: Number of members in replica set
+  displayName: Number of nodes in Replica Set
+  name: NUMBER_PODS_RS
+  required: true
+  value: "3"
