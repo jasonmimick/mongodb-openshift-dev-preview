@@ -92,16 +92,17 @@ objects:
             K8S="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}"
             CACERT="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
             NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
-            export SECRET_NAME="$(echo "mms-project-${MMS_PROJECT_NAME}-secret" | tr '[:upper:]' '[:lower:]')"
-            echo "Contacting ${K8S} in namespace '${NAMESPACE}' for the keys 'MMS_GROUP_ID' & 'MMS_AGENT_APIKEY' in secret '${SECRET_NAME}'"
+            SECRET_NAME=$(echo "mms-project-${MMS_PROJECT_NAME}-secret" | tr '[:upper:]' '[:lower:]')
+            echo "Contacting ${K8S} in namespace '${NAMESPACE}' for the keys 'mmsGroupId' & 'mmsAgentApikey' in secret '${SECRET_NAME}'"
             SECRET_STUFF=$(curl -vvvsSk --cacert $CACERT -H "Authorization: Bearer ${TOKEN}" ${K8S}/api/v1/namespaces/${NAMESPACE}/secrets/${SECRET_NAME}) 
             KIND=$(echo ${SECRET_STUFF} | python -c 'import sys,json,base64,os;r=json.load(sys.stdin); print r["kind"]')
-            if [ "${KIND}" == "Secret" ] 
+            echo "KIND=${KIND}"
+            if [ "${KIND}" == "Secret" ]; 
             then 
-              MMS_GROUP_ID=$(echo ${SECRET_STUFF} |  python -c 'import sys,json,base64;r=json.load(sys.stdin);print base64.b64decode(r["data"]["MMS_GROUP_ID"])'); 
-              MMS_AGENT_APIKEY=$(echo ${SECRET_STUFF} |  python -c 'import sys,json,base64;r=json.load(sys.stdin);print base64.b64decode(r["data"]["MMS_AGENT_APIKEY"])'); 
+              MMS_GROUP_ID=$(echo ${SECRET_STUFF} |  python -c 'import sys,json,base64;r=json.load(sys.stdin);print base64.b64decode(r["data"]["mmsGroupId"])') 
+              MMS_AGENT_APIKEY=$(echo ${SECRET_STUFF} |  python -c 'import sys,json,base64;r=json.load(sys.stdin);print base64.b64decode(r["data"]["mmsAgentApikey"])') 
             fi
-            if [ "${KIND}" == "Status" ] 
+            if [ "${KIND}" == "Status" ];
             then 
               echo "${SECRET_STUFF}"
               echo "If not, then we need to create the group"
@@ -112,7 +113,7 @@ objects:
               MMS_GROUP_ID=$(cat /mms-config/group.${MMS_PROJECT_NAME}.json | python -c 'import sys, json; r = json.load(sys.stdin);print r["id"]')
               MMS_AGENT_APIKEY=$(cat /mms-config/group.${MMS_PROJECT_NAME}.json | python -c 'import sys, json; r = json.load(sys.stdin);print r["agentApiKey"]')
               temp=$(mktemp)
-              echo '{ "kind": "Secret", "apiVersion": "v1", "metadata": { "name": "${SECRET_NAME}" }, "stringData": { "MMS_GROUP_ID": "${MMS_GROUP_ID}", "MMS_AGENT_APIKEY" : "${MMS_GROUP_ID}" } }' > ${temp}
+              echo { \"kind\": \"Secret\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"${SECRET_NAME}\" }, \"stringData\": { \"mmsGroupId\": \"${MMS_GROUP_ID}\", \"mmsAgentApikey\" : \"${MMS_AGENT_APIKEY}\" } } > ${temp}
               SR=$(curl -k -X POST -H "Authorization: Bearer $TOKEN" -H 'Accept: application/json' -H 'Content-Type: application/json' ${K8S}/api/v1/namespaces/$NAMESPACE/secrets --data "@${temp}")
               K_SR=$(echo ${SR} | python -c 'import sys,json,base64,os;r=json.load(sys.stdin); print r["kind"]')
               if [ "${KIND}" == "Status" ] 
@@ -122,6 +123,7 @@ objects:
                 exit 1
               fi
               echo "Created Secret '${SECRET_NAME}' Response: '${SR}'"
+            fi
             if [ -z ${MMS_GROUP_ID+x} ]
             then
               echo "[ERROR] Unable to set MMS_GROUP_ID, cannot continue."
