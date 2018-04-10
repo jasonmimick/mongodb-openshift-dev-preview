@@ -25,6 +25,7 @@ objects:
   kind: ServiceAccount
   metadata:
    name: mongodb-secret-access-sa
+   namespace: ${NAMESPACE} 
 - apiVersion: rbac.authorization.k8s.io/v1beta1
   kind: ClusterRole
   metadata:
@@ -40,7 +41,7 @@ objects:
   subjects:
   - kind: ServiceAccount
     name: mongodb-secret-access-sa
-    namespace: default
+    namespace: ${NAMESPACE} 
   roleRef:
     kind: ClusterRole
     name: mongodb-secret-access-cr
@@ -78,7 +79,7 @@ objects:
       spec:
         serviceAccountName: mongodb-secret-access-sa
         initContainers:
-        - name: mms-api-predeploy
+        - name: mms-node-init
           image: centos
           command:
           - /bin/sh
@@ -87,15 +88,54 @@ objects:
             set -ex
             echo "Attempt to configure MongoDB Ops Manager Project & apikeys"
             echo "Check if we have mms project and apikey info in existing secret"
-            echo "If not, then we need to create the group"
-            echo "Fetch MongoDB Ops Manager project (group) information"
-            echo "(next command does a POST with the project name, this will either create a project or return project information)"
-            curl --header "Content-Type: application/json" --header "Accept: application/json" -u "${MMS_USER}:${MMS_USER_APIKEY}" --digest "${MMS_BASE_URL}api/public/v1.0/groups" -d '{"name":"${MMS_PROJECT_NAME}"}' > /mms-config/group.${MMS_PROJECT_NAME}.json
-            cat /mms-config/group.${MMS_PROJECT_NAME}.json
-            MMS_GROUP_ID=$(cat /mms-config/group.${MMS_PROJECT_NAME}.json | python -c 'import sys, json; r = json.load(sys.stdin);print r["id"]')
-            MMS_AGENT_APIKEY=$(cat /mms-config/group.${MMS_PROJECT_NAME}.json | python -c 'import sys, json; r = json.load(sys.stdin);print r["agentApiKey"]')
+            TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+            K8S="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}"
+            CACERT="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+            NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+            export SECRET_NAME="$(echo "mms-project-${MMS_PROJECT_NAME}-secret" | tr '[:upper:]' '[:lower:]')"
+            echo "Contacting ${K8S} in namespace '${NAMESPACE}' for the keys 'MMS_GROUP_ID' & 'MMS_AGENT_APIKEY' in secret '${SECRET_NAME}'"
+            SECRET_STUFF=$(curl -vvvsSk --cacert $CACERT -H "Authorization: Bearer ${TOKEN}" ${K8S}/api/v1/namespaces/${NAMESPACE}/secrets/${SECRET_NAME}) 
+            KIND=$(echo ${SECRET_STUFF} | python -c 'import sys,json,base64,os;r=json.load(sys.stdin); print r["kind"]')
+            if [ "${KIND}" == "Secret" ] 
+            then 
+              MMS_GROUP_ID=$(echo ${SECRET_STUFF} |  python -c 'import sys,json,base64;r=json.load(sys.stdin);print base64.b64decode(r["data"]["MMS_GROUP_ID"])'); 
+              MMS_AGENT_APIKEY=$(echo ${SECRET_STUFF} |  python -c 'import sys,json,base64;r=json.load(sys.stdin);print base64.b64decode(r["data"]["MMS_AGENT_APIKEY"])'); 
+            fi
+            if [ "${KIND}" == "Status" ] 
+            then 
+              echo "${SECRET_STUFF}"
+              echo "If not, then we need to create the group"
+              echo "Fetch MongoDB Ops Manager project (group) information"
+              echo "(next command does a POST with the project name, this will either create a project or return project information)"
+              curl --header "Content-Type: application/json" --header "Accept: application/json" -u "${MMS_USER}:${MMS_USER_APIKEY}" --digest "${MMS_BASE_URL}api/public/v1.0/groups" -d '{"name":"${MMS_PROJECT_NAME}"}' > /mms-config/group.${MMS_PROJECT_NAME}.json
+              cat /mms-config/group.${MMS_PROJECT_NAME}.json
+              MMS_GROUP_ID=$(cat /mms-config/group.${MMS_PROJECT_NAME}.json | python -c 'import sys, json; r = json.load(sys.stdin);print r["id"]')
+              MMS_AGENT_APIKEY=$(cat /mms-config/group.${MMS_PROJECT_NAME}.json | python -c 'import sys, json; r = json.load(sys.stdin);print r["agentApiKey"]')
+              temp=$(mktemp)
+              echo '{ "kind": "Secret", "apiVersion": "v1", "metadata": { "name": "${SECRET_NAME}" }, "stringData": { "MMS_GROUP_ID": "${MMS_GROUP_ID}", "MMS_AGENT_APIKEY" : "${MMS_GROUP_ID}" } }' > ${temp}
+              SR=$(curl -k -X POST -H "Authorization: Bearer $TOKEN" -H 'Accept: application/json' -H 'Content-Type: application/json' ${K8S}/api/v1/namespaces/$NAMESPACE/secrets --data "@${temp}")
+              K_SR=$(echo ${SR} | python -c 'import sys,json,base64,os;r=json.load(sys.stdin); print r["kind"]')
+              if [ "${KIND}" == "Status" ] 
+              then 
+                STATUS=$(echo ${SR} | python -c 'import sys,json,base64,os;r=json.load(sys.stdin); print r["status"]')
+                echo "Attempting to create '${SECRET_NAME}' got Status.status='${STATUS}'"
+                exit 1
+              fi
+              echo "Created Secret '${SECRET_NAME}' Response: '${SR}'"
+            if [ -z ${MMS_GROUP_ID+x} ]
+            then
+              echo "[ERROR] Unable to set MMS_GROUP_ID, cannot continue."
+              exit 1
+            fi
+            if [ -z ${MMS_AGENT_APIKEY+x} ]
+            then
+              echo "[ERROR] Unable to set MMS_AGENT_APIKEY, cannot continue."
+              exit 1
+            fi
+            
             echo "Found MMS_GROUP_ID=${MMS_GROUP_ID} for Ops Manager Project '${MMS_PROJECT_NAME}'"
             echo "Found MMS_AGENT_APIKEY=${MMS_AGENT_APIKEY} for Ops Manager Project '${MMS_PROJECT_NAME}'"
+            echo "Storing MongoDB Ops Manager configuration in shared mount '/mms-config/mms-env.sh'"
             echo "#!/bin/sh" > /mms-config/mms-env.sh
             echo "export MMS_PROJECT_NAME=${MMS_PROJECT_NAME}" >> /mms-config/mms-env.sh
             echo "export MMS_GROUP_ID=${MMS_GROUP_ID}" >> /mms-config/mms-env.sh
@@ -131,11 +171,20 @@ objects:
           - -c
           - |
             set -ex
+            if [ ! -f /mms-config/mms-env.sh ]; then
+              echo "[ERROR] MongoDB Ops Manager configration not found."
+              echo "[ERROR] File '/mms-config/mms-env.sh' does not exist."
+              echo "[ERROR] Check Init Container 'mms-node-init' logs. (oc logs <pod_name> -c mms-node-init)."
+              exit 1
+            fi
             source /mms-config/mms-env.sh 
             AGENT_URL=${MMS_BASE_URL}download/agent/automation/  
             AGENT=mongodb-mms-automation-agent-manager- 
             AGENT_VERSION=4.5.12.2514-1.x86_64.rhel7.rpm 
-            echo "MongoDB Ops Manager - openshift - initContainer MMS_PROJECT_NAME='${MMS_PROJECT_NAME}'"
+            echo "MongoDB Ops Manager - Openshift Developer Preview"
+            echo "MMS_PROJECT_NAME='${MMS_PROJECT_NAME}'"
+            echo "MMS_GROUP_ID='${MMS_GROUP_ID}'"
+            echo "MMS_AGENT_APIKEY='${MMS_AGENT_APIKEY}'"
             echo "Downloading $AGENT_URL$AGENT$AGENT_VERSION" 
             curl -OL "$AGENT_URL$AGENT$AGENT_VERSION" 
             echo "Installing $AGENT$AGENT_VERSION" 
@@ -199,6 +248,10 @@ objects:
     selector:
       app: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
 parameters:
+- description: The namespace to create a cluster in.
+  displayName: Namespace
+  name: NAMESPACE
+  required: true
 - description: Maximum amount of memory the container can use.
   displayName: Memory Limit
   name: MEMORY_LIMIT
