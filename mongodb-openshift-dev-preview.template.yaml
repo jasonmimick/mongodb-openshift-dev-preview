@@ -180,6 +180,7 @@ objects:
               exit 1
             fi
             source /mms-config/mms-env.sh 
+            # /download/agent/automation/mongodb-mms-automation-agent-latest.linux_x86_64.tar.gz
             AGENT_URL=${MMS_BASE_URL}download/agent/automation/  
             AGENT=mongodb-mms-automation-agent-manager- 
             AGENT_VERSION=4.5.12.2514-1.x86_64.rhel7.rpm 
