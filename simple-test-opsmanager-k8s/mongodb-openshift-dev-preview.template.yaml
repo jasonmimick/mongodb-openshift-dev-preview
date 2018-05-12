@@ -191,6 +191,7 @@ objects:
               exit 1
             fi
             source /mms-config/mms-env.sh 
+            # /download/agent/automation/mongodb-mms-automation-agent-latest.linux_x86_64.tar.gz
             AGENT_URL=${MMS_BASE_URL}download/agent/automation/  
             echo "MongoDB Ops Manager - Openshift Developer Preview"
             echo "MMS_PROJECT_NAME='${MMS_PROJECT_NAME}'"

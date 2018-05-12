@@ -151,7 +151,7 @@ Dependencies<a id="depends"></a>
 * Docker Version 17.09.0-ce-mac35 (19611)
     * Some issue with very latest version for Mac
 
-Also see [Issues](/issues?state=open) for more tips.
+Also see [Issues](/issues) for more tips.
 
 
 Development Environment Tips<a id="devenvtips"></a>
@@ -195,7 +195,7 @@ Known Issues & Limitations<a id="issues"></a>
 List of issues, Limitations, and to-dos.
 
 All issues and limitations have moved to the
-[Issues](/issues?state=open) part of this repo.
+[Issues](https://github.com/jasonmimick/mongodb-openshift-dev-preview/issues) part of this repo.
 
 Contacts <a id="contact"></a>
 -----------------------------
