@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-opsmgr-global-admin
+type: Opaque
+stringData:
+  email: mongodude@mongorocks.com
+  pwd: mongodb!

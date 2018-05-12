@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-opsmgr-appdb-pv-claim
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mongodb-opsmgr-appdb 
+spec:
+  selector:
+    app: mongodb-opsmgr-appdb
+  type: ClusterIP
+  ports:
+  - port: 27000
+    targetPort: 27000
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mongodb-opsmgr-appdb
+  labels:
+    app: mongodb-opsmgr-appdb
+spec:
+  containers:
+  - name: mongodb-opsmgr-appdb
+    image: simple-test-opsmanager-k8s:beta
+    command: [ "supervisord" ]
+    args: [ "-c", "/mongodb-mms/supervisor-mongod.conf" ]
+    ports:
+    - containerPort: 27000
+    env:
+    - name: MONGODB_PORT
+      value: "27000"
+    volumeMounts:
+    - mountPath: /mongodb-opsmgr-appdb/data
+      name: mongodb-opsmgr-appdb-pv-claim
+  volumes:
+  - name: mongodb-opsmgr-appdb-pv-claim
+    persistentVolumeClaim:
+        claimName: mongodb-opsmgr-appdb-pv-claim
+

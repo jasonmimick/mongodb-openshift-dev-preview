@@ -24,12 +24,16 @@ objects:
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
-   name: mongodb-secret-access-sa
+   name: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}-secret-access-sa
    namespace: ${NAMESPACE} 
+   labels:
+     app: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
 - apiVersion: rbac.authorization.k8s.io/v1beta1
   kind: ClusterRole
   metadata:
-    name: mongodb-secret-access-cr
+    name: ${CLUSTER_NAME}-mongodb-secret-access-cr
+    labels:
+      app: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
   rules:
   - apiGroups: [""] # "" indicates the core API group
     resources: ["pods", "secrets"] 
@@ -37,14 +41,16 @@ objects:
 - apiVersion: rbac.authorization.k8s.io/v1beta1
   kind: ClusterRoleBinding
   metadata:
-    name: mongodb-secret-access-rb
+    name: ${CLUSTER_NAME}-mongodb-secret-access-rb
+    labels:
+      app: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
   subjects:
   - kind: ServiceAccount
-    name: mongodb-secret-access-sa
+    name: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}-secret-access-sa
     namespace: ${NAMESPACE} 
   roleRef:
     kind: ClusterRole
-    name: mongodb-secret-access-cr
+    name: ${CLUSTER_NAME}-mongodb-secret-access-cr
     apiGroup: rbac.authorization.k8s.io
 - apiVersion: v1
   kind: Secret
@@ -56,6 +62,8 @@ objects:
       template.openshift.io/expose-user: '{.data[''MMS_USER'']}'
       template.openshift.io/expose-user-apikey: '{.data[''MMS_USER_APIKEY'']}'
     name: ${CLUSTER_NAME}-secret
+    labels:
+      app: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
   namespace: ${NAMESPACE}
   state: present
   stringData:
@@ -64,11 +72,14 @@ objects:
     project-name: ${MMS_PROJECT_NAME}
     mms-user: ${MMS_USER}
     mms-user-apikey: ${MMS_USER_APIKEY}
+    agent-rpm: ${AGENT_RPM}
   type: Opaque
 - apiVersion: apps/v1beta1
   kind: StatefulSet
   metadata:
     name: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
+    labels:
+      app: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
   spec:
     replicas: ${NUMBER_PODS_RS}
     serviceName: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
@@ -77,7 +88,7 @@ objects:
         labels:
           app: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
       spec:
-        serviceAccountName: mongodb-secret-access-sa
+        serviceAccountName: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}-secret-access-sa
         initContainers:
         - name: mms-node-init
           image: centos
@@ -181,16 +192,14 @@ objects:
             fi
             source /mms-config/mms-env.sh 
             AGENT_URL=${MMS_BASE_URL}download/agent/automation/  
-            AGENT=mongodb-mms-automation-agent-manager- 
-            AGENT_VERSION=4.5.12.2514-1.x86_64.rhel7.rpm 
             echo "MongoDB Ops Manager - Openshift Developer Preview"
             echo "MMS_PROJECT_NAME='${MMS_PROJECT_NAME}'"
             echo "MMS_GROUP_ID='${MMS_GROUP_ID}'"
             echo "MMS_AGENT_APIKEY='${MMS_AGENT_APIKEY}'"
-            echo "Downloading $AGENT_URL$AGENT$AGENT_VERSION" 
-            curl -OL "$AGENT_URL$AGENT$AGENT_VERSION" 
-            echo "Installing $AGENT$AGENT_VERSION" 
-            rpm -U $AGENT$AGENT_VERSION 
+            echo "Downloading ${AGENT_URL}${AGENT_RPM}" 
+            curl -OL "${AGENT_URL}${AGENT_RPM}"
+            echo "Installing ${AGENT_RPM}" 
+            rpm -U "${AGENT_RPM}"
             echo "Updating /etc/mongodb-mms/automation-agent.config with:" 
             echo "mmsGroupId=${MMS_GROUP_ID}" 
             echo "mmsApiKey=${MMS_AGENT_APIKEY}" 
@@ -200,19 +209,37 @@ objects:
             echo "mmsGroupId=${MMS_GROUP_ID}" > /etc/mongodb-mms/automation-agent.config 
             echo "mmsApiKey=${MMS_AGENT_APIKEY}" >> /etc/mongodb-mms/automation-agent.config 
             echo "mmsBaseUrl=${MMS_BASE_URL_TRIMMED}" >> /etc/mongodb-mms/automation-agent.config 
-            #useradd mongod 
             chown mongod:mongod /data 
             echo "Creating /var/run/mongodb-mms-automation" 
             /usr/bin/mkdir -p /var/run/mongodb-mms-automation 
             /usr/bin/chown -R mongod:mongod /var/run/mongodb-mms-automation 
             echo "Starting automation agent..." 
-            su -s "/bin/bash" -c "/opt/mongodb-mms-automation/bin/mongodb-mms-automation-agent -f /etc/mongodb-mms/automation-agent.config -pidfilepath /var/run/mongodb-mms-automation/mongodb-mms-automation-agent.pid" mongod 
+            MMS_LOG_DIR=/var/log/mongodb-mms-automation
+            /opt/mongodb-mms-automation/bin/mongodb-mms-automation-agent \
+            -f /etc/mongodb-mms/automation-agent.config \
+            -pidfilepath /var/run/mongodb-mms-automation/mongodb-mms-automation-agent.pid \
+            -logLevel DEBUG \
+            -logFile ${MMS_LOG_DIR}/automation-agent.log \
+            >> ${MMS_LOG_DIR}/automation-agent-fatal.log 2>&1 &
             echo "MongoDB Ops Manager automation agent assigned to project '${MMS_PROJECT_NAME}' started `date`." 
+            echo "-- Reading automation agent log file forever"
+            VERBOSE_LOG="${MMS_LOG_DIR}/automation-agent-verbose.log"
+            if [ ! -f ${VERBOSE_LOG} ]; then
+               echo "${VERBOSE_LOG} not found, checking again in 2 seconds."
+               sleep 2
+            fi
+            echo "${VERBOSE_LOG} was found."
+            tail -F ${VERBOSE_LOG}
           env:
           - name: MMS_BASE_URL
             valueFrom:
               secretKeyRef:
                 key: base-url
+                name: ${CLUSTER_NAME}-secret
+          - name: AGENT_RPM
+            valueFrom:
+              secretKeyRef:
+                key: agent-rpm
                 name: ${CLUSTER_NAME}-secret
           image: centos
           name: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
@@ -230,6 +257,8 @@ objects:
     - name: "pvc"
       metadata:
         name: "pvc"
+        labels:
+          app: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
       spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
@@ -241,6 +270,7 @@ objects:
     labels:
       name: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
       replSet: ${CLUSTER_NAME}
+      app: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
     name: mongodb-${MMS_PROJECT_NAME}-${CLUSTER_NAME}
   spec:
     clusterIp: None
@@ -263,7 +293,7 @@ parameters:
   displayName: Ops Manager URL
   name: MMS_BASE_URL
   required: true
-  value: http://opsmgr.mongodbpartners.net:8080/
+  value: http://mongodb-opsmgr:8080/
 - description: MongoDB Ops Manager User
   displayName: Ops Manager user
   name: MMS_USER
@@ -273,13 +303,18 @@ parameters:
   displayName: User"s Ops Manager API key
   name: MMS_USER_APIKEY
   required: true
-  value: a66089d6-91bb-4cf7-ba67-5a6f4b356baf
+  value: 4e202049-b9e9-4952-8e13-5888d93dc25c
 - description: Name for Ops Manager Project
   displayName: Project to create replica set in
   from: openshift-[a-z0-9]{3}
   generate: expression
   name: MMS_PROJECT_NAME
   required: true
+- description: Automation Agent RPM
+  displayName: Full automation agent rpm filename, this may vary depending on your version of Ops Manager
+  name: AGENT_RPM
+  required: true
+  value: "mongodb-mms-automation-agent-manager-5.0.0.2523-1.x86_64.rhel7.rpm"
 - description: API Timeout
   displayName: MongoDB Ops Manager API Timeout in seconds
   name: MMS_API_TIMEOUT
@@ -291,11 +326,6 @@ parameters:
   generate: expression
   name: CLUSTER_NAME
   required: true
-- description: Version of MongoDB to deploy
-  displayName: MongoDB Version
-  name: MONGODB_VERSION
-  required: true
-  value: 3.4.13
 - description: Path for MongoDB data files in container
   displayName: Path for data files
   name: MONGODB_DBPATH

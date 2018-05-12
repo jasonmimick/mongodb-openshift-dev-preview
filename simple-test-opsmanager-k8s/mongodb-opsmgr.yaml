@@ -1,0 +1,53 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: mongodb-opsmgr
+spec:
+  selector:
+    app: mongodb-opsmgr
+  type: NodePort
+  ports:
+  - port: 8080
+    nodePort: 30080
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mongodb-opsmgr
+  labels:
+    app: mongodb-opsmgr
+spec:
+  initContainers:
+  - name: check-mongodb-opsmgr-appdb-ready
+    image: simple-test-opsmanager-k8s:beta
+    command: 
+    - /bin/sh 
+    - -c
+    - until /mongodb-mms/mongodb/bin/mongo ${OPSMGR_APPDB} --eval "print(\"mongodb-opsmgr-appdb is up!\")"; do echo "Waiting for ${OPSMGR_APPDB}"; sleep 5; done
+    env:
+    - name: OPSMGR_APPDB
+      value: "mongodb://mongodb-opsmgr-appdb:27000/?maxPoolSize=150"
+  containers:
+  - image: simple-test-opsmanager-k8s:beta
+    name: mongodb-opsmgr
+    command: [ "supervisord" ]
+    args: [ "-c", "/mongodb-mms/supervisor-mms.conf" ]
+    ports:
+    - containerPort: 8080
+    env:
+    - name: OPSMGR_PROJECT_NAME
+      value: "my-k8s-project"
+    - name: OPSMGR_APPDB
+      value: "mongodb://mongodb-opsmgr-appdb:27000/?maxPoolSize=150"
+    - name: OPSMGR_UI_PORT
+      value: "8080"
+    - name: GLOBAL_ADMIN_EMAIL
+      valueFrom:
+        secretKeyRef:
+          name: mongodb-opsmgr-global-admin
+          key: email
+    - name: GLOBAL_ADMIN_PWD
+      valueFrom:
+        secretKeyRef:
+          name: mongodb-opsmgr-global-admin
+          key: pwd
