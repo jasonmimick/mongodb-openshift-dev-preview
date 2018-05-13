@@ -24,7 +24,7 @@ where the MongoDB and Ops Manager archive are located in the script.
 
 3. `eval $(minishift docker)`
 
-4. `kubectl apple -f ./mongodb-opsmgr-appdb.yaml`
+4. `kubectl apply -f ./mongodb-opsmgr-appdb.yaml`
 
 5. Edit the Config Map defined in `./mongodb-opsmgr-global-config.yaml`
 with whatever user/pass you want. Then load into k8s.
