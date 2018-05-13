@@ -2,8 +2,8 @@ mongodb-openshift-dev-preview
 =============================
 
 ```diff
-+ STATUS: Work In Progress...
-- STATUS: Did not exist
++ STATUS: Updates! New test MongoDB Ops Manager install and OpenShift Template!
+- STATUS: Work In Progress...
 ```
 
 This is the MongoDB Enterprise Openshift "Developer Preview".
@@ -22,6 +22,8 @@ anything close to a production environment. All support, as it is, takes
 a standard open-source model. Anyone interested can contribute
 through GitHub.
 
+* [Updates](#updates)
+
 * [Introduction](#intro)
 
 * [Getting Started](#gs)
@@ -35,6 +37,32 @@ through GitHub.
 * [Contacts](#contact)
 
 * [Disclaimer](#disclaim)
+
+Updates <a id="updates"></a>
+-------------------------------
+*May 13, 2018* A new design strategy for deploying MongoDB clusters
+within OpenShift has been added to the preview in anticipation of
+more official support for Kubernetes in upcoming MongoDB Ops
+Manager releases. The new strategy is much simpler for developers
+and OpenShift operators as it removes the dependency on enabling
+the `--service-catalog`, installing the Ansible Service Broker, and
+any need to install additional client-side tooling. It consists
+of a simple OpenShift template which contains configuration parameters
+for accessing an instance of Ops Manager and for the desired MongoDB
+replica set. 
+
+The new additions to the developer preview also contain a simple
+test installation of Ops Manager to allow you to run Ops Manager
+directly in your OpenShift (or basic Kubernetes) cluster. Ops Manager
+is deployed into 2 pods, each with a single container. One runs
+a stand-alone instance of MongoDB to serve as the application database
+for Ops Manager. The other runs a single instance of the Ops Manager
+HTTP service (There is no backup daemon deployed in this demonstration.)
+
+Additional details and getting started notes can be found in the
+<a href="./simple-test-opsmanager-k8s">./simple-test-opsmanager-k8s</a>
+folder in the repo.
+
 
 Introduction <a id="intro"></a>
 -------------------------------
