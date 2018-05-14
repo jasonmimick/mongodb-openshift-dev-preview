@@ -299,12 +299,12 @@ parameters:
   displayName: Ops Manager user
   name: MMS_USER
   required: true
-  value: jason.mimick@mongodb.com
+  value: mongodude@mongorocks.com
 - description: MongoDB Ops Manager API key for user
   displayName: User"s Ops Manager API key
   name: MMS_USER_APIKEY
   required: true
-  value: 4e202049-b9e9-4952-8e13-5888d93dc25c
+  value: 0a4e8c42-a2de-49af-8db0-341be707bae5
 - description: Name for Ops Manager Project
   displayName: Project to create replica set in
   from: openshift-[a-z0-9]{3}
