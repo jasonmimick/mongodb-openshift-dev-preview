@@ -32,7 +32,7 @@ where the MongoDB and Ops Manager archive are located in the script.
 with whatever user/pass you want. Then load into k8s.
 
 ```
-oc apply -f ./mongodb-opsmgr-global-config.yaml
+oc apply -f ./mongodb-opsmgr-global-admin.yaml
 ```
 
 5. `oc apply -f ./mongodb-opsmgr.yaml`
