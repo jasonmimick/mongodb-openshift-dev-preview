@@ -315,7 +315,7 @@ parameters:
   displayName: Full automation agent rpm filename, this may vary depending on your version of Ops Manager
   name: AGENT_RPM
   required: true
-  value: "mongodb-mms-automation-agent-manager-5.0.0.2523-1.x86_64.rhel7.rpm"
+  value: "mongodb-mms-automation-agent-manager-5.4.0.5405-1.x86_64.rhel7.rpm"
 - description: API Timeout
   displayName: MongoDB Ops Manager API Timeout in seconds
   name: MMS_API_TIMEOUT
