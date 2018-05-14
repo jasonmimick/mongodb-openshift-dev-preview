@@ -16,24 +16,26 @@ Getting started
 Note - this should work with `minikube` or `minishift`. Of course,
 the OpenShift template included only work with minishift.
 
+If you're using this with `minikube`, just substitute the `kubectl`
+command for the `oc` command below (and, `minikube` for `minishift`).
 1. Build the images. Run `./build-image.sh`. Note you can override
 where the MongoDB and Ops Manager archive are located in the script.
 
-2. Start `minishift --openshift-version=v3.9.0 --memory=8GB`. 
+2. Start `minishift start --openshift-version=v3.9.0 --memory=8GB`. 
 (Run with a least 8GB of ram for Ops Manager, add more if needed.)
 
-3. `eval $(minishift docker)`
+3. `eval $(minishift docker-env)`
 
-4. `kubectl apply -f ./mongodb-opsmgr-appdb.yaml`
+4. `oc apply -f ./mongodb-opsmgr-appdb.yaml`
 
 5. Edit the Config Map defined in `./mongodb-opsmgr-global-config.yaml`
 with whatever user/pass you want. Then load into k8s.
 
 ```
-kubectl apply -f ./mongodb-opsmgr-global-config.yaml
+oc apply -f ./mongodb-opsmgr-global-config.yaml
 ```
 
-5. `kubectl apply -f ./mongodb-opsmgr.yaml`
+5. `oc apply -f ./mongodb-opsmgr.yaml`
 Wait for Ops Mgr to be ready.
 
 6. `oc expose service mongodb-opsmgr` 
@@ -44,7 +46,7 @@ to the new test Ops Manager instance running in k8s.
 is generated. You can see it with:
 
 ```
-kubectl exec mongodb-opsmgr -- cat /mongodb-mms/opsmgr-config-map.yaml
+oc exec mongodb-opsmgr -- cat /mongodb-mms/opsmgr-config-map.yaml
 ```
 
 7. Create a MongoDB replica set
