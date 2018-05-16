@@ -23,7 +23,7 @@ If you're using this with `minikube`, just substitute the `kubectl` command for 
 2. Start `minishift start --openshift-version=v3.9.0 --memory=8GB`.  (Run with a least 8GB of ram for Ops Manager, add more if needed.)
 
 Note: I needed to do some secrutiy stuff to get the default admin and developer accounts the correct roles to do things in OpenShift.
-Here's the script I run, probably this does way more than in really needed:
+Here's the script I run, probably this does way more than is really needed:
 
 ```
 #!/bin/bash
