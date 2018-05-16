@@ -22,6 +22,18 @@ If you're using this with `minikube`, just substitute the `kubectl` command for 
 
 2. Start `minishift start --openshift-version=v3.9.0 --memory=8GB`.  (Run with a least 8GB of ram for Ops Manager, add more if needed.)
 
+Note: I needed to do some secrutiy stuff to get the default admin and developer accounts the correct roles to do things in OpenShift.
+Here's the script I run, probably this does way more than in really needed:
+
+```
+#!/bin/bash
+oc login -u system:admin
+oc adm policy add-scc-to-user anyuid -z default
+oc adm policy add-scc-to-group anyuid system:authenticated
+oc adm policy add-cluster-role-to-user cluster-admin developer
+oc adm policy add-cluster-role-to-user cluster-admin admin
+```
+
 3. `eval $(minishift docker-env)`
 
 4. Run the following to load the need docker image into the local minishift docker registry:
