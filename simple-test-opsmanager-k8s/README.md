@@ -24,27 +24,33 @@ If you're using this with `minikube`, just substitute the `kubectl` command for 
 
 3. `eval $(minishift docker-env)`
 
-4. `oc apply -f ./mongodb-opsmgr-appdb.yaml`
+4. Run the following to load the need docker image into the local minishift docker registry:
 
-5. Edit the Config Map defined in `./mongodb-opsmgr-global-config.yaml` with whatever user/pass you want. Then load into k8s.
+```
+docker build docker/simple-test-opsmanager-k8s -t simple-test-opsmanager-k8s:beta -f docker/simple-test-opsmanager-k8s/Dockerfile
+```
+
+5. `oc apply -f ./mongodb-opsmgr-appdb.yaml`
+
+6. Edit the Config Map defined in `./mongodb-opsmgr-global-config.yaml` with whatever user/pass you want. Then load into k8s.
 
 ```
 oc apply -f ./mongodb-opsmgr-global-admin.yaml
 ```
 
-5. `oc apply -f ./mongodb-opsmgr.yaml`
+7. `oc apply -f ./mongodb-opsmgr.yaml`
 Wait for Ops Mgr to be ready.
 
-6. `oc expose service mongodb-opsmgr` 
+8. `oc expose service mongodb-opsmgr` 
 Then you should have a URL you can access in a browser to get  to the new test Ops Manager instance running in k8s.
 
-6. For the OpenShift template you need to update the APIKEY. One is generated in the mongodb-opsmgr container. You can see it with:
+9. For the OpenShift template you need to update the APIKEY. One is generated in the mongodb-opsmgr container. You can see it with:
 
 ```
 oc exec mongodb-opsmgr -- cat /mongodb-mms/opsmgr-config-map.yaml
 ```
 
-7. Create a MongoDB replica set. One way is on the command line:
+10. Create a MongoDB replica set. One way is on the command line:
 
 ```
 oc new-app --file mongodb-openshift-dev-preview.template.yaml --param=NAMESPACE=myproject
