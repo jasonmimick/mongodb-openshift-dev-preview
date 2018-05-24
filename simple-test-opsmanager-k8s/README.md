@@ -2,6 +2,15 @@ simple-test-opsmanager-k8s
 =======
 *Inspired by [Simple Test Deployment](https://docs.opsmanager.mongodb.com/current/tutorial/install-simple-test-deployment/)*
 
+```
+
+ _  _   __   __ _   ___   __  ____  ____        __  ____  ____  _  _   ___  ____      __ _  ____  ____ 
+( \/ ) /  \ (  ( \ / __) /  \(    \(  _ \ ___  /  \(  _ \/ ___)( \/ ) / __)(  _ \ ___(  / )/ _  \/ ___)
+/ \/ \(  O )/    /( (_ \(  O )) D ( ) _ ((___)(  O )) __/\___ \/ \/ \( (_ \ )   /(___))  ( ) _  (\___ \
+\_)(_/ \__/ \_)__) \___/ \__/(____/(____/      \__/(__)  (____/\_)(_/ \___/(__\_)    (__\_)\____/(____/
+```
+
+
 
 Simple Test Ops Manager running inside k8s.
 
