@@ -12,15 +12,20 @@ set -x
 [[ -z "${MONGODB_PORT}" ]] && MONGODB_PORT=27017
 
 # Configure mongodb instance
-INSTALL_DIR="/mongodb-mms"
-STARTUP_LOG="${INSTALL_DIR}/startup-mongod.log"
+INSTALL_DIR="/mongodb-opsmgr"
+RUN_DIR="/mongodb-opsmgr-appdb/runtime"
+STARTUP_LOG="${RUN_DIR}/startup-mongod.log"
 echo "mongod-launcher.sh STARTUP $(date)" > ${STARTUP_LOG}
 MONGOD_BIN="${INSTALL_DIR}/mongodb/bin"
 DBPATH="/mongodb-opsmgr-appdb/data"
-rm -rf "${DBPATH}"
-mkdir -p ${DBPATH}
 LOCK="${DBPATH}/mongodb.lock"
 SHELL="${MONGOD_BIN}/mongo --port=${MONGODB_PORT}"
+if [ ! -d ${DBPATH} ]; then
+  echo "${DBPATH} did not exist, creating..." >> ${STARTUP_LOG}
+  mkdir -p ${DBPATH}
+else
+  echo "Detected ${DBPATH} exists." >> ${STARTUP_LOG}
+fi
 
 # if lock stop
 if [ ! -f ${LOCK} ]; then
@@ -40,7 +45,6 @@ ${MONGOD_BIN}/mongod --dbpath=${DBPATH} \
                      --port=${MONGODB_PORT} \
                      --logpath=${DBPATH}/mongodb.log \
                      --wiredTigerCacheSizeGB=2 \
-                     --bind_ip_all \
                      --fork
 echo "Started ${MONGOD_BIN}/mongod --dbpath=${DBPATH}" >> ${STARTUP_LOG}
 head -20 ${MONGOD_BIN}/mongodb.log >> ${STARTUP_LOG}}

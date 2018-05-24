@@ -7,7 +7,7 @@ RUN apt-get -qq update && apt-get -y -qq install apt-utils
 RUN apt-get -y -qq install iputils-ping libsasl2-2 net-tools curl supervisor jq \
     && rm -rf /var/lib/apt/lists/*
 
-COPY content/ /mongodb-mms/
+COPY content/ /mongodb-opsmgr/
 COPY content/mongod.conf /etc/security/limits.d/
 RUN groupadd -r mongod && useradd -r -g mongod mongod
 

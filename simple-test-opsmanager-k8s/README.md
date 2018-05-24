@@ -1,4 +1,4 @@
-om-on-k8s
+simple-test-opsmanager-k8s
 =========
 
 
@@ -13,46 +13,33 @@ do NOT put anything you want to keep there!
 Getting started
 ---------------
 
-Note - this should work with `minikube` or `minishift`. Of course,
-the OpenShift template included only work with minishift.
+Note - this should work with `minikube`.
+If you don't know what `minikube` is, then you know what do, right?
 
-If you're using this with `minikube`, just substitute the `kubectl`
-command for the `oc` command below (and, `minikube` for `minishift`).
-1. Build the images. Run `./build-image.sh`. Note you can override
-where the MongoDB and Ops Manager archive are located in the script.
+Enterprise users, see below for `minishift`. 
 
-2. Start `minishift start --openshift-version=v3.9.0 --memory=8GB`. 
+1. Start `minikube start --memory="8000"`
 (Run with a least 8GB of ram for Ops Manager, add more if needed.)
 
-3. `eval $(minishift docker-env)`
+2. Build the images. Run `./build-image.sh`. Note you can override
+where the MongoDB and Ops Manager archive are located in the script.
+The `build-image.sh` script will attempt to find the newest Ops Mgr
+build. But, in order for this to work, you need to have a local
+version of the Ops Mgr github repository (https://github.com/10gen/mms).
+Otherwise, the build script will use the URL located in `./default-latest-mms-build`
 
-4. `oc apply -f ./mongodb-opsmgr-appdb.yaml`
 
-5. Edit the Config Map defined in `./mongodb-opsmgr-global-config.yaml`
-with whatever user/pass you want. Then load into k8s.
+2a. The `./build-image.sh` should do this, but make sure your local
+`minishift` `docker` registry actually has the image, if not, then
+run  `eval $(minishift docker-env)`
 
-```
-oc apply -f ./mongodb-opsmgr-global-admin.yaml
-```
+3. `kubectl create -f ./mongodb-opsmgr.yaml`
 
-5. `oc apply -f ./mongodb-opsmgr.yaml`
 Wait for Ops Mgr to be ready.
 
-6. `oc expose service mongodb-opsmgr` 
-Then you should have a URL you can access in a browser to get 
-to the new test Ops Manager instance running in k8s.
-
-6. For the OpenShift template you need to update the APIKEY. One
-is generated. You can see it with:
-
 ```
-oc exec mongodb-opsmgr -- cat /mongodb-mms/opsmgr-config-map.yaml
-```
-
-7. Create a MongoDB replica set
-
-```
-oc new-app --file mongodb-openshift-dev-preview.template.yaml --param=NAMESPACE=myproject
+kubectl exec -it $(kubectl get pods --selector=app=mongodb-opsmgr --output=jsonpath='{.items[0].metadata.name}') -c mongodb-opsmgr -- tail -f /mongodb-opsmgr-server/runtime/startup-mms.log
 ```
 
 
+Now - get your helm going....

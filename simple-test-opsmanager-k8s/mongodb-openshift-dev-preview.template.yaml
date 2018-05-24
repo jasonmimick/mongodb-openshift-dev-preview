@@ -304,7 +304,7 @@ parameters:
   displayName: User"s Ops Manager API key
   name: MMS_USER_APIKEY
   required: true
-  value: 0a4e8c42-a2de-49af-8db0-341be707bae5
+  value: 45fbcc0d-2667-41e0-996e-0555ff62baca
 - description: Name for Ops Manager Project
   displayName: Project to create replica set in
   from: openshift-[a-z0-9]{3}

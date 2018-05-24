@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 # This script will refresh the 'content' 
 # folder found in './docker/simple-test-opsmanager-k8s/'
 # to use when building the image
@@ -15,11 +16,17 @@ IMG_NAME="simple-test-opsmanager-k8s"
 IMG_TAG="${IMG_NAME}:beta"
 
 #Find urls to download MongoDB and Ops Manager bits
-X=$(curl -s https://s3.amazonaws.com/mongodb-mms-build-onprem/ops_manager_beta.html |\
- grep "^<tr><td>" |\
- grep ".tar.gz" |\
- sed -e 's:<tr><td>::g' -e 's:</a></td><tr>::g' -e 's:<a href="::g'|\
- cut -d"\"" -f1)
+MMS_REPO="${1:-/Users/jmimick/work/mms/.git}"
+MMS_BUILD_LINK_FILE="${2:-./.latest-mms-build-url}"
+./get-latest-mms.sh "${MMS_REPO}" "${MMS_BUILD_LINK_FILE}"
+X=$(cat ${MMS_BUILD_LINK_FILE})
+#X=$(curl -s https://s3.amazonaws.com/mongodb-mms-build-onprem/ops_manager_beta.html |\
+# grep "^<tr><td>" |\
+# grep ".tar.gz" |\
+# sed -e 's:<tr><td>::g' -e 's:</a></td><tr>::g' -e 's:<a href="::g'|\
+# cut -d"\"" -f1)
+
+
 Y=$(curl -s https://www.mongodb.org/dl/linux/x86_64-debian81 |\
  grep "debian81-3.7" | head -1 |\
  cut -d'>' -f2 | sed -e 's:<a href="::g' -e 's:"::g')
@@ -34,6 +41,10 @@ Y=$(curl -s https://www.mongodb.org/dl/linux/x86_64-debian81 |\
 
 MONGODB_URL=$Y
 MMS_URL=$X
+
+
+echo "MONGODB_URL=${MONGODB_URL}"
+echo "MMS_URL=${MMS_URL}"
 
 echo "Simple Test OpsManager K8S: Starting build"
 echo "Docker image name: '${IMG_NAME}'"
