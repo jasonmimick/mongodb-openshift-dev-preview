@@ -1,5 +1,6 @@
 simple-test-opsmanager-k8s
-=========
+=======
+*Inspired by [Simple Test Deployment](https://docs.opsmanager.mongodb.com/current/tutorial/install-simple-test-deployment/)*
 
 
 Simple Test Ops Manager running inside k8s.
@@ -20,6 +21,7 @@ Enterprise users, see below for `minishift`.
 
 1. Start `minikube start --memory="8000"`
 (Run with a least 8GB of ram for Ops Manager, add more if needed.)
+=======
 
 2. Build the images. Run `./build-image.sh`. Note you can override
 where the MongoDB and Ops Manager archive are located in the script.
@@ -32,14 +34,19 @@ Otherwise, the build script will use the URL located in `./default-latest-mms-bu
 2a. The `./build-image.sh` should do this, but make sure your local
 `minishift` `docker` registry actually has the image, if not, then
 run  `eval $(minishift docker-env)`
+=======
 
-3. `kubectl create -f ./mongodb-opsmgr.yaml`
-
+3. `kubectl create -f ./simple-test-opsmgr.yaml`
 Wait for Ops Mgr to be ready.
+
+=======
+#WORKING AREA#
 
 ```
 kubectl exec -it $(kubectl get pods --selector=app=mongodb-opsmgr --output=jsonpath='{.items[0].metadata.name}') -c mongodb-opsmgr -- tail -f /mongodb-opsmgr-server/runtime/startup-mms.log
 ```
 
-
+```
+kubectl exec mongodb-opsmgr -c mongodb-opsmgr -- cat mongodb-opsmgr-server/runtime/opsmgr-config-map.yaml | kubectl create -f -
+```
 Now - get your helm going....
