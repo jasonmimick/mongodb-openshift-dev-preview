@@ -39,16 +39,16 @@ build. But, in order for this to work, you need to have a local
 version of the Ops Mgr github repository (https://github.com/10gen/mms).
 Otherwise, the build script will use the URL located in `./default-latest-mms-build`
 
-
 2a. The `./build-image.sh` should do this, but make sure your local
 `minishift` `docker` registry actually has the image, if not, then
 run  `eval $(minishift docker-env)`
-=======
+
 
 3. `kubectl create -f ./simple-test-opsmgr.yaml`
 Wait for Ops Mgr to be ready.
 
-=======
+
+
 #WORKING AREA#
 
 ```
