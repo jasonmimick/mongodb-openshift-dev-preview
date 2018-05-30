@@ -92,7 +92,7 @@ spec:
     spec:
       containers:
       - name: mongodb-opsmgr-appdb
-        image: simple-test-opsmanager-k8s:beta
+        image: quay.io/jason_mimick/simple-test-opsmanager-k8s:beta
         command: [ "supervisord" ]
         args: [ "-c", "/mongodb-opsmgr/supervisor-mongod.conf" ]
         ports:
@@ -104,7 +104,7 @@ spec:
         - mountPath: /mongodb-opsmgr-appdb/data
           name: mongodb-opsmgr-appdb-pv-claim
       - name: mongodb-opsmgr
-        image: simple-test-opsmanager-k8s:beta
+        image: quay.io/jason_mimick/simple-test-opsmanager-k8s:beta
         command: [ "supervisord" ]
         args: [ "-c", "/mongodb-opsmgr/supervisor-mms.conf" ]
         ports:
