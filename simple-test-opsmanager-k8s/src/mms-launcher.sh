@@ -16,7 +16,7 @@ set -x
 [[ -z "${GLOBAL_ADMIN_PWD}" ]] && GLOBAL_ADMIN_PWD="mongodb123!"
 [[ -z "${OPSMGR_UI_PORT}" ]] && OPSMGR_UI_PORT=8080
 [[ -z "${OPSMGR_PROJECT_NAME}" ]] && OPSMGR_PROJECT_NAME="k8s-project-0"
-[[ -z "${OPSMGR_APPDB}" ]] && OPSMGR_APPDB="mongodb://mongodb-opsmgr:27000/?maxPoolSize=150"
+[[ -z "${OPSMGR_APPDB}" ]] && OPSMGR_APPDB="mongodb://mongodb-opsmgr.mongodb:27000/?maxPoolSize=150"
 
 # Configure ops manager instance
 INSTALL_DIR="/mongodb-opsmgr"
@@ -24,7 +24,7 @@ RUN_DIR="/mongodb-opsmgr-server/runtime"
 STARTUP_LOG="${RUN_DIR}/startup-mms.log"
 OPSMGR_LOG_PATH="${RUN_DIR}/logs"
 mkdir -p "${OPSMGR_LOG_PATH}"
-OPSMGR_CONFIG_MAP="${RUN_DIR}/opsmgr-config-map.yaml"
+OPERATOR_CONFIG="${RUN_DIR}/operator-project-credenatials.yaml"
 CONF_MMS_PROPERTIES="${RUN_DIR}/conf-mms.properties"
 if [ -f ${STARTUP_LOG} ]; then
   mv ${STARTUP_LOG} ${RUN_DIR}/startup-mms.$(date --iso-8601=seconds).log
@@ -42,8 +42,8 @@ done
 
 
 # Check if this pod was already running
-if [ -f ${OPSMGR_CONFIG_MAP} ]; then
-  echo "Detected ${OPSMGR_CONFIG_MAP} exists, attempting restart." >> ${STARTUP_LOG}
+if [ -f ${OPERATOR_CONFIG} ]; then
+  echo "Detected ${OPERATOR_CONFIG} exists, attempting restart." >> ${STARTUP_LOG}
   # Fire up mms
   cp ${CONF_MMS_PROPERTIES}  ${INSTALL_DIR}/mongodb-mms/conf/conf-mms.properties
   echo "Starting ${MMS_BIN_SCRIPT} start" >> ${STARTUP_LOG}
@@ -58,14 +58,18 @@ fi
 AUTOMATION_VERSIONS_DIRECTORY="${RUN_DIR}/mongodb-releases"
 mkdir "${AUTOMATION_VERSIONS_DIRECTORY}"
 HOSTNAME=$(hostname -f)
+OPSMGR_SERVICE_HOSTNAME="mongodb-opsmgr"
+OPSMGR_SERVICE_HOSTNAME_INTERNAL="mongodb-opsmgr-internal"
+#OPSMGR_SERVICE_HOSTNAME="${HOSTNAME}"
 MMS_EMAIL="opsmgr@example.com"
 echo "Found hostname `${HOSTNAME}`" >> ${STARTUP_LOG}
+
 cat <<CONF_MMS >> ${CONF_MMS_PROPERTIES}
 # Generated om-on-k8s $(date)
 mms.ignoreInitialUiSetup=true
 mongo.mongoUri=${OPSMGR_APPDB}
 mms.https.ClientCertificateMode=None
-mms.centralUrl=http://${HOSTNAME}:${OPSMGR_UI_PORT}
+mms.centralUrl=http://${OPSMGR_SERVICE_HOSTNAME}:${OPSMGR_UI_PORT}
 mms.fromEmailAddr=${MMS_EMAIL}
 mms.replyToEmailAddr=${MMS_EMAIL}
 mms.adminEmailAddr=${MMS_EMAIL}
@@ -82,7 +86,7 @@ cp ${CONF_MMS_PROPERTIES}  ${INSTALL_DIR}/mongodb-mms/conf/conf-mms.properties
 echo "${CONF_MMS_PROPERTIES}" >> ${STARTUP_LOG}
 cat "${CONF_MMS_PROPERTIES}" >> ${STARTUP_LOG}
 echo "${INSTALL_DIR}/mongodb-mms/conf/conf-mms.properties" >> ${STARTUP_LOG}
-cat "${INSTALL_DIR}/mongodb-mms/conf/conf-mms.properties" >> ${STARTUP_LOG}s
+cat "${INSTALL_DIR}/mongodb-mms/conf/conf-mms.properties" >> ${STARTUP_LOG}
 
 if [ "${OPSMGR_UI_PORT}" != "8080" ]; then
    echo "Updating ${INSTALL_DIR}/mongodb-mms/conf/mms.conf with BASE_PORT=${OPSMNGR_UI_PORT}" >> ${STARTUP_LOG}
@@ -112,22 +116,24 @@ ${MMS_BIN_SCRIPT} start
 echo "Started ${MMS_BIN_SCRIPT} start" >> ${STARTUP_LOG}
 
 
-OPSMGR_URL="http://${HOSTNAME}:${OPSMGR_UI_PORT}"
+OPSMGR_URL="http://${OPSMGR_SERVICE_HOSTNAME}:${OPSMGR_UI_PORT}"
+LOCAL_OPSMGR_URL="http://${OPSMGR_SERVICE_HOSTNAME_INTERNAL}:${OPSMGR_UI_PORT}"
+#LOCAL_OPSMGR_URL="http://${HOSTNAME}:${OPSMGR_UI_PORT}"
 # need to wait until mms is really up before continuing
 WAIT_SLEEP_SECONDS=10
-echo "Waiting for mms to be available at '${OPSMGR_URL}' $(date)" >> ${STARTUP_LOG}
-while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' ${OPSMGR_URL})" != "303" ]]; do
+echo "Waiting for mms to be available at '${LOCAL_OPSMGR_URL}' $(date)" >> ${STARTUP_LOG}
+while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' ${LOCAL_OPSMGR_URL})" != "303" ]]; do
   sleep ${WAIT_SLEEP_SECONDS}
   echo "Still waiting... $(date)" >> ${STARTUP_LOG}
-  curl -vvv ${OPSMGR_URL} >> ${STARTUP_LOG}
+  curl -vvv ${LOCAL_OPSMGR_URL} >> ${STARTUP_LOG}
 done
-echo "mms was up at ${OPSMGR_URL} $(date)" >> ${STARTUP_LOG}
+echo "mms was up at ${LOCAL_OPSMGR_URL} $(date)" >> ${STARTUP_LOG}
 
 echo "GLOBAL_ADMIN_EMAIL=${GLOBAL_ADMIN_EMAIL}" >> ${STARTUP_LOG}
 echo "GLOBAL_ADMIN_PWD=${GLOBAL_ADMIN_PWD}" >> ${STARTUP_LOG}
 echo "OPSMGR_URL=${OPSMGR_URL}" >> ${STARTUP_LOG}
 curl -vvv -H "Content-Type: application/json" -i \
--X POST "${OPSMGR_URL}/api/public/v1.0/unauth/users?whitelist=0.0.0.0/0" \
+-X POST "${LOCAL_OPSMGR_URL}/api/public/v1.0/unauth/users?whitelist=0.0.0.0/0" \
 --data "{
    \"username\": \"${GLOBAL_ADMIN_EMAIL}\",
    \"emailAddress\": \"${GLOBAL_ADMIN_EMAIL}\",
@@ -146,7 +152,7 @@ echo "user apikey = \"${APIKEY}\"" >> ${STARTUP_LOG}
 echo "Creating group '${OPSMGR_PROJECT_NAME}'..." >> ${STARTUP_LOG}
 curl -vvv -u "${GLOBAL_ADMIN_EMAIL}:${APIKEY}" \
 -H "Content-Type: application/json" --digest -i -X POST \
-"${OPSMGR_URL}/api/public/v1.0/groups" --data "{
+"${LOCAL_OPSMGR_URL}/api/public/v1.0/groups" --data "{
   \"name\": \"${OPSMGR_PROJECT_NAME}\"
 }"  | tail -n 1 > out2.json
 
@@ -159,25 +165,32 @@ head -30 out2.json >> ${STARTUP_LOG}
 echo "GROUP '${OPSMGR_PROJECT_NAME}' GROUPID=${GROUP_ID} AGENT_APIKEY=${AGENT_APIKEY}" >> ${STARTUP_LOG}
 echo "Creating ${OPSMGR_CONGIG_MAP}." >> ${STARTUP_LOG}
 
+GLOBAL_ADMIN_EMAIL_B64=$(echo ${GLOBAL_ADMIN_EMAIL} | base64)
+PUBLIC_APIKEY_B64=$(echo ${APIKEY} | base64)
 
 # Generate ConfigMap for MongoDB Kubernetes Operator to use
 # for this new Ops Manager deployment.
-cat <<CONFIG_MAP >> ${OPSMGR_CONFIG_MAP}
+cat <<OP_CONFIG >> ${OPERATOR_CONFIG}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: global-om-config
+  name: ${OPSMGR_PROJECT_NAME}
 data:
-  PUBLIC_API_KEY: ${APIKEY}
-  GROUP_ID: ${GROUP_ID}
-  BASE_URL: ${OPSMGR_URL}
-  USER_LOGIN: ${GLOBAL_ADMIN_EMAIL}
-  ORG_ID: ${ORG_ID}
-  AGENT_APIKEY: ${AGENT_APIKEY}
-CONFIG_MAP
+  projectId: ${GROUP_ID}
+  baseUrl: ${OPSMGR_URL}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: opsmgr-global-admin-credentials
+data:
+  user: ${GLOBAL_ADMIN_EMAIL_B64}
+  publicApiKey: ${PUBLIC_APIKEY_B64}
+OP_CONFIG
 
-echo "Wrote MongoDB Ops Manager Kubernetes Operator
-cat ${STARTUP_LOG}
+echo "Wrote MongoDB Ops Manager Kubernetes Operator config to ${OPERATOR_CONFIG} \
+>> ${STARTUP_LOG}
 
 
 echo "-- Reading ${OPSMGR_LOG_PATH}/mms0.log file forever" >> ${STARTUP_LOG}
