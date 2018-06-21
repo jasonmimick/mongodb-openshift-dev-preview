@@ -24,7 +24,7 @@ RUN_DIR="/mongodb-opsmgr-server/runtime"
 STARTUP_LOG="${RUN_DIR}/startup-mms.log"
 OPSMGR_LOG_PATH="${RUN_DIR}/logs"
 mkdir -p "${OPSMGR_LOG_PATH}"
-OPERATOR_CONFIG="${RUN_DIR}/operator-project-credenatials.yaml"
+OPERATOR_CONFIG="${RUN_DIR}/operator-project-credentials.yaml"
 CONF_MMS_PROPERTIES="${RUN_DIR}/conf-mms.properties"
 if [ -f ${STARTUP_LOG} ]; then
   mv ${STARTUP_LOG} ${RUN_DIR}/startup-mms.$(date --iso-8601=seconds).log
@@ -59,7 +59,7 @@ AUTOMATION_VERSIONS_DIRECTORY="${RUN_DIR}/mongodb-releases"
 mkdir "${AUTOMATION_VERSIONS_DIRECTORY}"
 HOSTNAME=$(hostname -f)
 OPSMGR_SERVICE_HOSTNAME="mongodb-opsmgr"
-OPSMGR_SERVICE_HOSTNAME_INTERNAL="mongodb-opsmgr-internal"
+OPSMGR_SERVICE_HOSTNAME_INTERNAL="mongodb-opsmgr"
 #OPSMGR_SERVICE_HOSTNAME="${HOSTNAME}"
 MMS_EMAIL="opsmgr@example.com"
 echo "Found hostname `${HOSTNAME}`" >> ${STARTUP_LOG}
@@ -163,10 +163,14 @@ AGENT_APIKEY=$(jq -r '.agentApiKey' out2.json)$
 head -30 out2.json >> ${STARTUP_LOG}
 
 echo "GROUP '${OPSMGR_PROJECT_NAME}' GROUPID=${GROUP_ID} AGENT_APIKEY=${AGENT_APIKEY}" >> ${STARTUP_LOG}
-echo "Creating ${OPSMGR_CONGIG_MAP}." >> ${STARTUP_LOG}
+echo "Creating ${OPERATOR_CONFIG}." >> ${STARTUP_LOG}
 
+set -o errexit
 GLOBAL_ADMIN_EMAIL_B64=$(echo ${GLOBAL_ADMIN_EMAIL} | base64)
 PUBLIC_APIKEY_B64=$(echo ${APIKEY} | base64)
+
+echo "GLOBAL_ADMIN_EMAIL_B64=${GLOBAL_ADMIN_EMAIL_B64}"
+echo "PUBLIC_APIKEY_B64=${PUBLIC_APIKEY_B64}"
 
 # Generate ConfigMap for MongoDB Kubernetes Operator to use
 # for this new Ops Manager deployment.
@@ -189,7 +193,7 @@ data:
   publicApiKey: ${PUBLIC_APIKEY_B64}
 OP_CONFIG
 
-echo "Wrote MongoDB Ops Manager Kubernetes Operator config to ${OPERATOR_CONFIG} \
+echo "Wrote MongoDB Enterprise Kubernetes Operator config to ${OPERATOR_CONFIG}" \
 >> ${STARTUP_LOG}
 
 

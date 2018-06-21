@@ -90,6 +90,7 @@ spec:
       labels:
         app: mongodb-opsmgr
     spec:
+      hostname: mongodb-opsmgr
       containers:
       - name: mongodb-opsmgr-appdb
         image: simple-test-opsmanager-k8s:beta
