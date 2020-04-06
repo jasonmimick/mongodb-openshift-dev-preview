@@ -1,10 +1,11 @@
 
-<span style="color:red; font-size:32pt">
-Please see the offical MongoDB Kubernetes docs
+# This post and code are quite old.
 
-[http://docs.mongodb.com/kubernetes-operator/master/](http://docs.mongodb.com/kubernetes-operator/master/)
-</span>
+# Please see the offical MongoDB Kubernetes docs:
+ 
+# [http://docs.mongodb.com/kubernetes-operator/master/](http://docs.mongodb.com/kubernetes-operator/master/)
 
+---
 
 mongodb-openshift-dev-preview
 =============================
