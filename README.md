@@ -1,5 +1,16 @@
+
+<span style="color:red; font-size:32pt">
+Please see the offical MongoDB Kubernetes docs
+
+[http://docs.mongodb.com/kubernetes-operator/master/](http://docs.mongodb.com/kubernetes-operator/master/)
+</span>
+
+
 mongodb-openshift-dev-preview
 =============================
+
+
+
 
 ```diff
 + STATUS: Updates! New test MongoDB Ops Manager install and OpenShift Template!
